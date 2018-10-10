@@ -66,14 +66,22 @@ ImageViewer::ImageViewer()
 
 }
 
-void ImageViewer::applyExampleAlgorithm()
+void ImageViewer::drawRedCross()
 {
 	if(image!=NULL)
 	{
-		for(int i=0;i<std::min(image->width(),image->height());i++)
+        loadFile(lastFilename);
+        QColor crossColor = QColor(Qt::GlobalColor::red);
+        int sliderValue = m_crossSlider->value();
+        
+        int crossWidth = image->width()*sliderValue/100;
+        int crossHeight = image->height()*sliderValue/100;
+        
+		for(int i=0;i<std::min(crossWidth, crossHeight);i++)
 		{
 			// macht die Farbe schwarz, bitte recherchieren wie eine andere Farbe gesetzt wird ...
-			image->setPixel(i,i,0);
+			image->setPixelColor(i,i,crossColor);
+            image->setPixelColor(i,crossHeight-i,crossColor);
 		}
 	updateImageDisplay();
  	logFile << "example algorithm applied " << std::endl;
@@ -104,14 +112,19 @@ void ImageViewer::generateControlPanels()
 	button1 = new QPushButton();
 	button1->setText("Apply algorithm");
 
+    m_crossSlider = new QSlider();
+    m_crossSlider->setRange(0, 100);
+    m_crossSlider->setOrientation(Qt::Horizontal);
+    
 	button2 = new QPushButton();
 	button2->setText("do something else");
 
-	QObject::connect(button1, SIGNAL (clicked()), this, SLOT (applyExampleAlgorithm()));
+	QObject::connect(button1, SIGNAL (clicked()), this, SLOT (drawRedCross()));
  
 	m_option_layout1->addWidget(button1);
+    m_option_layout1->addWidget(m_crossSlider);
 	m_option_layout1->addWidget(button2);
-	tabWidget->addTab(m_option_panel1,"first tab");   
+	tabWidget->addTab(m_option_panel1,"Uebung1");
 
 
 	// another tab 
@@ -243,6 +256,7 @@ bool ImageViewer::loadFile(const QString &fileName)
 	image=NULL;
     }
 
+    lastFilename = fileName;
     image = new QImage(fileName);
 
 	
@@ -289,6 +303,7 @@ void ImageViewer::open()
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setMimeTypeFilters(mimeTypeFilters);
     dialog.selectMimeTypeFilter("image/jpeg");
+
 
     while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().first())) {}
 }

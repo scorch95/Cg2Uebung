@@ -58,6 +58,7 @@ class QVBoxLayout;
 class QTabWidget;
 class QPushButton;
 class QSpinBox;
+class QSlider;
 
 class ImageViewer : public QMainWindow
 {
@@ -75,14 +76,18 @@ class ImageViewer : public QMainWindow
      QPushButton* button1;
      QPushButton* button2;
      QSpinBox* spinbox1;
+    
 
      // hier können weitere GUI Objekte hin wie Buttons Slider etc. 
 
+     // Uebung 1
+    QSlider* m_crossSlider;
+    
 
  private slots:
 
      // Beispiel für einen Algorithmus
-     void applyExampleAlgorithm();
+     void drawRedCross();
 
      // hier können weitere als SLOTS definierte Funktionen hin, die auf Knopfdruck etc. aufgerufen werden.
 
@@ -137,6 +142,7 @@ protected:
     QScrollArea* scrollArea;
     double scaleFactor;
     QImage* image;
+    QString lastFilename;
 
     std::fstream logFile;
 
