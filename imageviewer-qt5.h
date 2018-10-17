@@ -73,26 +73,22 @@ class ImageViewer : public QMainWindow
      QWidget*	m_option_panel2;
      QVBoxLayout*    m_option_layout2;
 
-     QPushButton* button1;
-     QPushButton* button2;
-     QSpinBox* spinbox1;
     
 
      // hier können weitere GUI Objekte hin wie Buttons Slider etc. 
 
      // Uebung 1
-    QSlider* m_crossSlider;
+    QSlider* crossSlider;
+    QPushButton* applyCross;
+    
+    // Uebung 2
+    QLabel* varianz;
+    QLabel* mittlereHelligkeit;
     
 
  private slots:
 
-     // Beispiel für einen Algorithmus
      void drawRedCross();
-
-     // hier können weitere als SLOTS definierte Funktionen hin, die auf Knopfdruck etc. aufgerufen werden.
-
-
-
 
 
      void open();
@@ -134,6 +130,7 @@ protected:
     void scaleImage(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
     void renewLogging();
+    void calcValues();
 
     QTabWidget* tabWidget;
     QTextEdit* logBrowser;

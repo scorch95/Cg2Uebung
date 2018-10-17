@@ -72,7 +72,7 @@ void ImageViewer::drawRedCross()
 	{
         loadFile(lastFilename);
         QColor crossColor = QColor(Qt::GlobalColor::red);
-        int sliderValue = m_crossSlider->value();
+        int sliderValue = crossSlider->value();
         
         int crossWidth = image->width()*sliderValue/100;
         int crossHeight = image->height()*sliderValue/100;
@@ -92,6 +92,38 @@ void ImageViewer::drawRedCross()
  	
 }
 
+void ImageViewer::calcValues()
+{
+    int n = image->width();
+    int m = image->height();
+    
+    double brightness= 0.0;
+    
+    for(int i=0; i<m; i++)
+    {
+        for (int j=0; j<n; j++)
+        {
+            //double light=qGray(image->pixel(i, j));
+            
+            QColor color = QColor(image->pixel(i, j));
+            double light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            brightness += light;
+            
+            
+            QRgb temp= 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            QColor c = QColor(temp,temp,temp);
+
+            image->setPixelColor(i, j, c);
+            
+        }
+    }
+    updateImageDisplay();
+    mittlereHelligkeit->setText("Mittlere Helligkeit:  "+QString::number(brightness /= m*n));
+    
+    
+    
+}
+
 /**************************************************************************************** 
 *   
 *  mit dieser Methode können sie sich pro Aufgabe ein  Tab anlegen, in der die Ein-
@@ -109,21 +141,19 @@ void ImageViewer::generateControlPanels()
 	m_option_panel1->setLayout(m_option_layout1);      
 
 
-	button1 = new QPushButton();
-	button1->setText("Apply algorithm");
+	applyCross = new QPushButton();
+	applyCross->setText("Apply cross");
 
-    m_crossSlider = new QSlider();
-    m_crossSlider->setRange(0, 100);
-    m_crossSlider->setOrientation(Qt::Horizontal);
+    crossSlider = new QSlider();
+    crossSlider->setRange(0, 100);
+    crossSlider->setOrientation(Qt::Horizontal);
     
-	button2 = new QPushButton();
-	button2->setText("do something else");
 
-	QObject::connect(button1, SIGNAL (clicked()), this, SLOT (drawRedCross()));
+	QObject::connect(applyCross, SIGNAL (clicked()), this, SLOT (drawRedCross()));
  
-	m_option_layout1->addWidget(button1);
-    m_option_layout1->addWidget(m_crossSlider);
-	m_option_layout1->addWidget(button2);
+	m_option_layout1->addWidget(applyCross);
+    m_option_layout1->addWidget(new QLabel("Cross Size:"));
+    m_option_layout1->addWidget(crossSlider);
 	tabWidget->addTab(m_option_panel1,"Uebung1");
 
 
@@ -133,12 +163,11 @@ void ImageViewer::generateControlPanels()
 	m_option_layout2 = new QVBoxLayout();
 	m_option_panel2->setLayout(m_option_layout2);      
 
-	spinbox1 = new QSpinBox(tabWidget);
+    mittlereHelligkeit = new QLabel("Mittlere Helligkeit: ");
+    
+    m_option_layout2->addWidget(mittlereHelligkeit);
 
-	m_option_layout2->addWidget(new QLabel("description of parameter etc."));
-	m_option_layout2->addWidget(spinbox1);
-
-	tabWidget->addTab(m_option_panel2,"another tab");
+	tabWidget->addTab(m_option_panel2,"Uebung2");
 	tabWidget->show();
 
 
@@ -285,6 +314,9 @@ bool ImageViewer::loadFile(const QString &fileName)
     setWindowFilePath(fileName);
     logFile << "geladen: " << fileName.toStdString().c_str()  << std::endl;
     renewLogging();
+    
+    calcValues();
+    
     return true;
 }
 
