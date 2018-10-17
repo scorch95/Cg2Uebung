@@ -96,8 +96,9 @@ void ImageViewer::calcValues()
 {
     int n = image->width();
     int m = image->height();
-    
+    int* contrast = new int[256];
     double brightness= 0.0;
+    double var= 0.0;
     
     for(int i=0; i<m; i++)
     {
@@ -106,22 +107,67 @@ void ImageViewer::calcValues()
             //double light=qGray(image->pixel(i, j));
             
             QColor color = QColor(image->pixel(i, j));
-            double light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
             brightness += light;
-            
-            
-            QRgb temp= 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
-            QColor c = QColor(temp,temp,temp);
-
-            image->setPixelColor(i, j, c);
-            
+            contrast[light]++;
+            //std::cout<< i*n+j << std::endl;
         }
     }
+
+    brightness /= m*n;
+
+    for(int i=0; i<m; i++)
+    {
+        for (int j=0; j<n; j++)
+        {
+            QColor color = QColor(image->pixel(i, j));
+            double light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            var += std::pow(light-brightness, 2);
+        }
+    }
+
+    var /= m*n;
+
+    QColor histogramColor = QColor(Qt::GlobalColor::black);
+    int max = *std::max_element(contrast, contrast+256);
+    for(int i=0; i<256; i++)
+    {
+        if( contrast[i] != 0)
+        {
+            std::cout<< contrast[i] << " pro "<< max<< " MN "<<m*n<< " at "<< i<< std::endl;
+            int maxHeight = contrast[i]*100/max;
+            for (int j=0; j<maxHeight; j++)
+            {
+                histoImage->setPixelColor(i, 100 - j, histogramColor);
+            }
+        }
+    }
+
     updateImageDisplay();
-    mittlereHelligkeit->setText("Mittlere Helligkeit:  "+QString::number(brightness /= m*n));
-    
-    
-    
+    mittlereHelligkeit->setText("Mittlere Helligkeit:  "+QString::number(brightness));
+    varianz->setText("Varianz: "+QString::number(var));
+    delete[] contrast;
+}
+
+void ImageViewer::convertToGreyScale()
+{
+    int n = image->width();
+    int m = image->height();
+
+    for(int i=0; i<m; i++)
+    {
+        for (int j=0; j<n; j++)
+        {
+            QColor color = QColor(image->pixel(i, j));
+            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+
+            QColor c = QColor(light,light,light);
+            image->setPixelColor(i, j, c);
+
+        }
+    }
+
+    updateImageDisplay();
 }
 
 /**************************************************************************************** 
@@ -136,7 +182,7 @@ void ImageViewer::generateControlPanels()
 {
 	// first tab
 
-    	m_option_panel1 = new QWidget();
+    m_option_panel1 = new QWidget();
 	m_option_layout1 = new QVBoxLayout();
 	m_option_panel1->setLayout(m_option_layout1);      
 
@@ -157,17 +203,33 @@ void ImageViewer::generateControlPanels()
 	tabWidget->addTab(m_option_panel1,"Uebung1");
 
 
-	// another tab 
+    // second tab
 
-        m_option_panel2 = new QWidget();
+    m_option_panel2 = new QWidget();
 	m_option_layout2 = new QVBoxLayout();
 	m_option_panel2->setLayout(m_option_layout2);      
 
+
+    convertToGreyScaleBtn = new QPushButton();
+    convertToGreyScaleBtn->setText("convert to Greyscale");
+    QObject::connect(convertToGreyScaleBtn, SIGNAL (clicked()), this, SLOT (convertToGreyScale()));
+
     mittlereHelligkeit = new QLabel("Mittlere Helligkeit: ");
-    
+    varianz = new QLabel("Varinaz: ");
+
+    histogram = new QLabel();
+    histoImage = new QImage(":/histogram.jpg");
+    histogram->adjustSize();
+    histogram->setPixmap(QPixmap::fromImage(*histoImage));
+    histogram->resize(2. * histogram->pixmap()->size());
+
     m_option_layout2->addWidget(mittlereHelligkeit);
+    m_option_layout2->addWidget(varianz);
+    m_option_layout2->addWidget(histogram);
+    m_option_layout2->addWidget(convertToGreyScaleBtn);
 
 	tabWidget->addTab(m_option_panel2,"Uebung2");
+
 	tabWidget->show();
 
 
@@ -227,7 +289,9 @@ void ImageViewer::resizeEvent(QResizeEvent * event)
 
 void ImageViewer::updateImageDisplay()
 {
-	imageLabel->setPixmap(QPixmap::fromImage(*image));
+    imageLabel->setPixmap(QPixmap::fromImage(*image));
+    histogram->setPixmap(QPixmap::fromImage(*histoImage));
+
 }
 
 
@@ -287,8 +351,7 @@ bool ImageViewer::loadFile(const QString &fileName)
 
     lastFilename = fileName;
     image = new QImage(fileName);
-
-	
+    histoImage = new QImage(":/histogram.jpg");
 
     if (image->isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),

@@ -84,12 +84,14 @@ class ImageViewer : public QMainWindow
     // Uebung 2
     QLabel* varianz;
     QLabel* mittlereHelligkeit;
-    
+    QPushButton* convertToGreyScaleBtn;
+    QLabel* histogram;
+    QImage* histoImage;
 
  private slots:
 
      void drawRedCross();
-
+     void convertToGreyScale();
 
      void open();
      void print();
