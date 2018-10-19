@@ -42,9 +42,6 @@
 #define IMAGEVIEWER_H
 
 #include <QMainWindow>
-#ifndef QT_NO_PRINTER
-#include <QPrinter>
-#endif
 
 #include "fstream"
 
@@ -108,6 +105,7 @@ class ImageViewer : public QMainWindow
 
 public:
      ImageViewer();
+     virtual ~ImageViewer();
      bool loadFile(const QString &);
      void updateImageDisplay();
 
@@ -133,6 +131,8 @@ protected:
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
     void renewLogging();
     void calcValues();
+    
+    QImage* getHistoimage();
 
     QTabWidget* tabWidget;
     QTextEdit* logBrowser;
@@ -144,10 +144,6 @@ protected:
     QString lastFilename;
 
     std::fstream logFile;
-
-#ifndef QT_NO_PRINTER
-    QPrinter printer;
-#endif
 
     QAction *openAct;
     QAction *printAct;

@@ -41,6 +41,7 @@
 #include <QtWidgets>
 #ifndef QT_NO_PRINTER
 #include <QPrintDialog>
+#include <QPrinter>
 #endif
 #include<iostream>
 
@@ -51,19 +52,39 @@ ImageViewer::ImageViewer()
 {
 
 	image=NULL;
+    histoImage = NULL;
+    
 	resize(1600, 600);
 	
 	startLogging();
 
 	generateMainGui();
-	renewLogging();
 
 	generateControlPanels();
     	createActions();
     	createMenus();
 
     	resize(QGuiApplication::primaryScreen()->availableSize() * 0.85 );
+    
+#ifdef QT_NO_PRINTER
+    logFile << "Printing not available" << std::endl;
+#else
+    logFile << "Printing available" << std::endl;
+#endif
 
+    renewLogging();
+}
+
+ImageViewer::~ImageViewer()
+{
+    if(image!=NULL)
+    {
+        delete image;
+    }
+    if(histoImage!=NULL)
+    {
+        delete histoImage;
+    }
 }
 
 void ImageViewer::drawRedCross()
@@ -96,13 +117,13 @@ void ImageViewer::calcValues()
 {
     int n = image->width();
     int m = image->height();
-    int* contrast = new int[256];
+    QVector<int> contrast(256);
     double brightness= 0.0;
     double var= 0.0;
     
-    for(int i=0; i<m; i++)
+    for(int i=0; i<n; i++)
     {
-        for (int j=0; j<n; j++)
+        for (int j=0; j<m; j++)
         {
             //double light=qGray(image->pixel(i, j));
             
@@ -116,9 +137,9 @@ void ImageViewer::calcValues()
 
     brightness /= m*n;
 
-    for(int i=0; i<m; i++)
+    for(int i=0; i<n; i++)
     {
-        for (int j=0; j<n; j++)
+        for (int j=0; j<m; j++)
         {
             QColor color = QColor(image->pixel(i, j));
             double light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
@@ -129,8 +150,8 @@ void ImageViewer::calcValues()
     var /= m*n;
 
     QColor histogramColor = QColor(Qt::GlobalColor::black);
-    int max = *std::max_element(contrast, contrast+256);
-    for(int i=0; i<256; i++)
+    int max = *std::max_element(contrast.begin(), contrast.end());
+    for(int i=0; i<histoImage->width(); i++)
     {
         if( contrast[i] != 0)
         {
@@ -138,7 +159,7 @@ void ImageViewer::calcValues()
             int maxHeight = contrast[i]*100/max;
             for (int j=0; j<maxHeight; j++)
             {
-                histoImage->setPixelColor(i, 100 - j, histogramColor);
+                histoImage->setPixelColor(i, 99 - j, histogramColor);
             }
         }
     }
@@ -146,7 +167,6 @@ void ImageViewer::calcValues()
     updateImageDisplay();
     mittlereHelligkeit->setText("Mittlere Helligkeit:  "+QString::number(brightness));
     varianz->setText("Varianz: "+QString::number(var));
-    delete[] contrast;
 }
 
 void ImageViewer::convertToGreyScale()
@@ -182,15 +202,15 @@ void ImageViewer::generateControlPanels()
 {
 	// first tab
 
-    m_option_panel1 = new QWidget();
+    m_option_panel1 = new QWidget(this);
 	m_option_layout1 = new QVBoxLayout();
 	m_option_panel1->setLayout(m_option_layout1);      
 
 
-	applyCross = new QPushButton();
+	applyCross = new QPushButton(this);
 	applyCross->setText("Apply cross");
 
-    crossSlider = new QSlider();
+    crossSlider = new QSlider(this);
     crossSlider->setRange(0, 100);
     crossSlider->setOrientation(Qt::Horizontal);
     
@@ -198,27 +218,27 @@ void ImageViewer::generateControlPanels()
 	QObject::connect(applyCross, SIGNAL (clicked()), this, SLOT (drawRedCross()));
  
 	m_option_layout1->addWidget(applyCross);
-    m_option_layout1->addWidget(new QLabel("Cross Size:"));
+    m_option_layout1->addWidget(new QLabel("Cross Size:", this));
     m_option_layout1->addWidget(crossSlider);
 	tabWidget->addTab(m_option_panel1,"Uebung1");
 
 
     // second tab
 
-    m_option_panel2 = new QWidget();
+    m_option_panel2 = new QWidget(this);
 	m_option_layout2 = new QVBoxLayout();
 	m_option_panel2->setLayout(m_option_layout2);      
 
 
-    convertToGreyScaleBtn = new QPushButton();
+    convertToGreyScaleBtn = new QPushButton(this);
     convertToGreyScaleBtn->setText("convert to Greyscale");
     QObject::connect(convertToGreyScaleBtn, SIGNAL (clicked()), this, SLOT (convertToGreyScale()));
 
-    mittlereHelligkeit = new QLabel("Mittlere Helligkeit: ");
-    varianz = new QLabel("Varinaz: ");
+    mittlereHelligkeit = new QLabel("Mittlere Helligkeit: ", this);
+    varianz = new QLabel("Varinaz: ", this);
 
-    histogram = new QLabel();
-    histoImage = new QImage(":/histogram.jpg");
+    histogram = new QLabel(this);
+    histoImage = getHistoimage();
     histogram->adjustSize();
     histogram->setPixmap(QPixmap::fromImage(*histoImage));
     histogram->resize(2. * histogram->pixmap()->size());
@@ -309,14 +329,14 @@ void ImageViewer::generateMainGui()
 	//centralwidget->setFixedSize(200,200);
 	//setCentralWidget(centralwidget);
 
-    	imageLabel = new QLabel;
+    	imageLabel = new QLabel(this);
  	imageLabel->setBackgroundRole(QPalette::Base);
     	imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     	imageLabel->setScaledContents(true);
 	
 
 	/* Center widget */
-	scrollArea = new QScrollArea;
+	scrollArea = new QScrollArea(this);
    	scrollArea->setBackgroundRole(QPalette::Dark);
     	scrollArea->setWidget(imageLabel);
 	
@@ -326,7 +346,7 @@ void ImageViewer::generateMainGui()
 	/* HBox layout */
 	QGridLayout* gLayout = new QGridLayout(centralwidget);
 	gLayout->setObjectName(QStringLiteral("hboxLayout"));
-	gLayout->addWidget(new QLabel(),1,1);
+	gLayout->addWidget(new QLabel(this),1,1);
 	gLayout->setVerticalSpacing(50);
 	gLayout->addWidget(tabWidget,2,1);
 	gLayout->addWidget(scrollArea,2,2);
@@ -351,7 +371,11 @@ bool ImageViewer::loadFile(const QString &fileName)
 
     lastFilename = fileName;
     image = new QImage(fileName);
-    histoImage = new QImage(":/histogram.jpg");
+    if(histoImage!=NULL)
+    {
+        delete histoImage;
+    }
+    histoImage = getHistoimage();
 
     if (image->isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
@@ -407,6 +431,7 @@ void ImageViewer::print()
 {
     Q_ASSERT(imageLabel->pixmap());
 #if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
+    QPrinter printer;
     QPrintDialog dialog(&printer, this);
     if (dialog.exec()) {
         QPainter painter(&printer);
@@ -554,4 +579,12 @@ void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
 {
     scrollBar->setValue(int(factor * scrollBar->value()
                             + ((factor - 1) * scrollBar->pageStep()/2)));
+}
+
+QImage* ImageViewer::getHistoimage()
+{
+    QImage* returnImage = new QImage(256,100, QImage::Format_RGB32);
+    returnImage->fill(QColor(183, 183, 183));
+    
+    return returnImage;
 }
