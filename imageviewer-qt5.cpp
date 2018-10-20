@@ -247,6 +247,23 @@ void ImageViewer::generateControlPanels()
     m_option_layout2->addWidget(varianz);
     m_option_layout2->addWidget(histogram);
     m_option_layout2->addWidget(convertToGreyScaleBtn);
+    
+    QLabel* contrastLabel = new QLabel(this);
+    contrast = getSlider(contrastLabel);
+    QFormLayout* contrastLayout = new QFormLayout();
+    contrastLayout->addRow(contrastLabel, contrast);
+    
+    QLabel* brightnessLabel = new QLabel(this);
+    brightness = getSlider(brightnessLabel);
+    QFormLayout* brightnessLayout = new QFormLayout();
+    brightnessLayout->addRow(brightnessLabel, brightness);
+    
+    QFormLayout* sliderLayout = new QFormLayout();
+    
+    sliderLayout->addRow(new QLabel("Contrast: ", this), contrastLayout);
+    sliderLayout->addRow(new QLabel("Brightness: ", this), brightnessLayout);
+    
+    m_option_layout2->addLayout(sliderLayout);
 
 	tabWidget->addTab(m_option_panel2,"Uebung2");
 
@@ -587,4 +604,16 @@ QImage* ImageViewer::getHistoimage()
     returnImage->fill(QColor(183, 183, 183));
     
     return returnImage;
+}
+
+QSlider* ImageViewer::getSlider(QLabel* valueLabel)
+{
+    QSlider* returnSlider = new QSlider(this);
+    
+    returnSlider->setRange(0, 255);
+    returnSlider->setOrientation(Qt::Horizontal);
+    connect(returnSlider, SIGNAL(valueChanged(int)), valueLabel, SLOT(setNum(int)));
+    
+    
+    return returnSlider;
 }

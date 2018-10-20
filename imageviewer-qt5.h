@@ -84,6 +84,8 @@ class ImageViewer : public QMainWindow
     QPushButton* convertToGreyScaleBtn;
     QLabel* histogram;
     QImage* histoImage;
+    QSlider* contrast;
+    QSlider* brightness;
 
  private slots:
 
@@ -131,6 +133,8 @@ protected:
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
     void renewLogging();
     void calcValues();
+    
+    QSlider* getSlider(QLabel* valueLabel);
     
     QImage* getHistoimage();
 
