@@ -52,6 +52,7 @@ ImageViewer::ImageViewer()
 {
 
 	image=NULL;
+    backupImage=NULL;
     histoImage = NULL;
     
 	resize(1600, 600);
@@ -91,7 +92,8 @@ void ImageViewer::drawRedCross()
 {
 	if(image!=NULL)
 	{
-        loadFile(lastFilename);
+        delete image;
+        image = new QImage(*backupImage);
         QColor crossColor = QColor(Qt::GlobalColor::red);
         int sliderValue = crossSlider->value();
         
@@ -174,9 +176,9 @@ void ImageViewer::convertToGreyScale()
     int n = image->width();
     int m = image->height();
 
-    for(int i=0; i<m; i++)
+    for(int i=0; i<n; i++)
     {
-        for (int j=0; j<n; j++)
+        for (int j=0; j<m; j++)
         {
             QColor color = QColor(image->pixel(i, j));
             QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
@@ -386,13 +388,18 @@ bool ImageViewer::loadFile(const QString &fileName)
 	image=NULL;
     }
 
-    lastFilename = fileName;
     image = new QImage(fileName);
     if(histoImage!=NULL)
     {
         delete histoImage;
     }
     histoImage = getHistoimage();
+    
+    if(backupImage != NULL)
+    {
+        delete backupImage;
+    }
+    backupImage = new QImage(*image);
 
     if (image->isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),

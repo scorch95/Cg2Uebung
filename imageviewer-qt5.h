@@ -145,7 +145,7 @@ protected:
     QScrollArea* scrollArea;
     double scaleFactor;
     QImage* image;
-    QString lastFilename;
+    QImage* backupImage;
 
     std::fstream logFile;
 
