@@ -54,6 +54,7 @@ ImageViewer::ImageViewer()
 	image=NULL;
     backupImage=NULL;
     histoImage = NULL;
+    histoVec = NULL;
     
 	resize(1600, 600);
 	
@@ -82,9 +83,17 @@ ImageViewer::~ImageViewer()
     {
         delete image;
     }
+    if(backupImage != NULL)
+    {
+        delete backupImage;
+    }
     if(histoImage!=NULL)
     {
         delete histoImage;
+    }
+    if(histoVec!=NULL)
+    {
+        delete histoVec;
     }
 }
 
@@ -117,6 +126,12 @@ void ImageViewer::drawRedCross()
 
 void ImageViewer::calcValues()
 {
+    if(histoImage!=NULL)
+    {
+        delete histoImage;
+    }
+    histoImage = getHistoimage();
+    
     int n = image->width();
     int m = image->height();
     QVector<int> contrast(256);
@@ -169,6 +184,11 @@ void ImageViewer::calcValues()
     updateImageDisplay();
     mittlereHelligkeit->setText("Mittlere Helligkeit:  "+QString::number(brightness));
     varianz->setText("Varianz: "+QString::number(var));
+    if(histoVec != NULL)
+    {
+        delete histoVec;
+    }
+    histoVec = new QVector<int>(contrast);
 }
 
 void ImageViewer::convertToGreyScale()
@@ -212,16 +232,18 @@ void ImageViewer::generateControlPanels()
 	applyCross = new QPushButton(this);
 	applyCross->setText("Apply cross");
 
-    crossSlider = new QSlider(this);
-    crossSlider->setRange(0, 100);
-    crossSlider->setOrientation(Qt::Horizontal);
+    QFormLayout* crossLayout = new QFormLayout();
+    QLabel* crossLabel = new QLabel();
+    crossSlider = getSlider(crossLabel, 0, 100);
+    
+    crossLayout->addRow(crossLabel, crossSlider);
     
 
 	QObject::connect(applyCross, SIGNAL (clicked()), this, SLOT (drawRedCross()));
  
 	m_option_layout1->addWidget(applyCross);
     m_option_layout1->addWidget(new QLabel("Cross Size:", this));
-    m_option_layout1->addWidget(crossSlider);
+    m_option_layout1->addLayout(crossLayout);
 	tabWidget->addTab(m_option_panel1,"Uebung1");
 
 
@@ -237,7 +259,7 @@ void ImageViewer::generateControlPanels()
     QObject::connect(convertToGreyScaleBtn, SIGNAL (clicked()), this, SLOT (convertToGreyScale()));
 
     mittlereHelligkeit = new QLabel("Mittlere Helligkeit: ", this);
-    varianz = new QLabel("Varinaz: ", this);
+    varianz = new QLabel("Varianz: ", this);
 
     histogram = new QLabel(this);
     histoImage = getHistoimage();
@@ -251,21 +273,31 @@ void ImageViewer::generateControlPanels()
     m_option_layout2->addWidget(convertToGreyScaleBtn);
     
     QLabel* contrastLabel = new QLabel(this);
-    contrast = getSlider(contrastLabel);
-    QFormLayout* contrastLayout = new QFormLayout();
-    contrastLayout->addRow(contrastLabel, contrast);
+    contrast = getSlider(contrastLabel, 0, CONTRAST_MAX);
+    contrast->setValue(CONTRAST_MW);
+    QVBoxLayout* contrastLayout = new QVBoxLayout();
+    contrastLayout->addWidget(contrastLabel);
+    contrastLayout->addWidget(contrast);
+    
     
     QLabel* brightnessLabel = new QLabel(this);
-    brightness = getSlider(brightnessLabel);
-    QFormLayout* brightnessLayout = new QFormLayout();
-    brightnessLayout->addRow(brightnessLabel, brightness);
+    brightness = getSlider(brightnessLabel, -255, 255);
+    QVBoxLayout* brightnessLayout = new QVBoxLayout();
+    brightnessLayout->addWidget(brightnessLabel);
+    brightnessLayout->addWidget(brightness);
     
     QFormLayout* sliderLayout = new QFormLayout();
     
     sliderLayout->addRow(new QLabel("Contrast: ", this), contrastLayout);
     sliderLayout->addRow(new QLabel("Brightness: ", this), brightnessLayout);
     
+    connect(contrast, SIGNAL(valueChanged(int)), this, SLOT(changeContrast(int)));
+    connect(brightness, SIGNAL(valueChanged(int)), this, SLOT(changeBrightness(int)));
+    
     m_option_layout2->addLayout(sliderLayout);
+    
+    adjustContrastButton = new QPushButton("Adjust Contrast");
+    m_option_layout2->addWidget(adjustContrastButton);
 
 	tabWidget->addTab(m_option_panel2,"Uebung2");
 
@@ -389,11 +421,6 @@ bool ImageViewer::loadFile(const QString &fileName)
     }
 
     image = new QImage(fileName);
-    if(histoImage!=NULL)
-    {
-        delete histoImage;
-    }
-    histoImage = getHistoimage();
     
     if(backupImage != NULL)
     {
@@ -613,14 +640,59 @@ QImage* ImageViewer::getHistoimage()
     return returnImage;
 }
 
-QSlider* ImageViewer::getSlider(QLabel* valueLabel)
+QSlider* ImageViewer::getSlider(QLabel* valueLabel, int min, int max)
 {
-    QSlider* returnSlider = new QSlider(this);
+        QSlider* returnSlider = new QSlider(this);
+        
+        returnSlider->setRange(min, max);
+        returnSlider->setValue(0);
+        returnSlider->setOrientation(Qt::Horizontal);
+        connect(returnSlider, SIGNAL(valueChanged(int)), valueLabel, SLOT(setNum(int)));
+        
+        valueLabel->setNum(returnSlider->value());
+        return returnSlider;
+}
+
+void ImageViewer::changeContrast(int value)
+{
+    //value=contrast->maximum()-value;
+    if(backupImage==NULL||image==NULL)
+    {
+        return;
+    }
+    for(int i = 0; i<backupImage->width(); i++)
+    {
+        for (int j = 0; j<backupImage->height(); j++)
+        {
+            QColor color = QColor(backupImage->pixel(i, j));
+            //QRgb light = color.red() + color.green() + color.blue();
+            
+            color.setRed(checkColor((color.red()+brightness->value())*value/(double)CONTRAST_MW));
+            color.setGreen(checkColor((color.green()+brightness->value())*value/(double)CONTRAST_MW));
+            color.setBlue(checkColor((color.blue()+brightness->value())*value/(double)CONTRAST_MW));
+            //QColor c = QColor(light+value,light+value,light+value);
+            image->setPixelColor(i, j, color);
+            
+        }
+    }
+    calcValues();
+}
+
+void ImageViewer::changeBrightness(int value)
+{
+    changeContrast(contrast->value());
+}
+
+int ImageViewer::checkColor(int value)
+{
+    if(value > 255)
+        value = 255;
+    if(value < 0)
+        value = 0;
+    return value;
+}
+
+void ImageViewer::adjustContrast()
+{
     
-    returnSlider->setRange(0, 255);
-    returnSlider->setOrientation(Qt::Horizontal);
-    connect(returnSlider, SIGNAL(valueChanged(int)), valueLabel, SLOT(setNum(int)));
-    
-    
-    return returnSlider;
 }
