@@ -42,9 +42,6 @@
 #define IMAGEVIEWER_H
 
 #include <QMainWindow>
-#ifndef QT_NO_PRINTER
-#include <QPrinter>
-#endif
 
 #include "fstream"
 
@@ -87,6 +84,8 @@ class ImageViewer : public QMainWindow
     QPushButton* convertToGreyScaleBtn;
     QLabel* histogram;
     QImage* histoImage;
+    QSlider* contrast;
+    QSlider* brightness;
 
  private slots:
 
@@ -108,6 +107,7 @@ class ImageViewer : public QMainWindow
 
 public:
      ImageViewer();
+     virtual ~ImageViewer();
      bool loadFile(const QString &);
      void updateImageDisplay();
 
@@ -133,6 +133,10 @@ protected:
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
     void renewLogging();
     void calcValues();
+    
+    QSlider* getSlider(QLabel* valueLabel);
+    
+    QImage* getHistoimage();
 
     QTabWidget* tabWidget;
     QTextEdit* logBrowser;
@@ -141,13 +145,9 @@ protected:
     QScrollArea* scrollArea;
     double scaleFactor;
     QImage* image;
-    QString lastFilename;
+    QImage* backupImage;
 
     std::fstream logFile;
-
-#ifndef QT_NO_PRINTER
-    QPrinter printer;
-#endif
 
     QAction *openAct;
     QAction *printAct;
