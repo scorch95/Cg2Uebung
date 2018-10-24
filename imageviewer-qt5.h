@@ -56,6 +56,7 @@ class QTabWidget;
 class QPushButton;
 class QSpinBox;
 class QSlider;
+class QDoubleSpinBox;
 
 class ImageViewer : public QMainWindow
 {
@@ -91,6 +92,9 @@ class ImageViewer : public QMainWindow
     QPushButton* adjustContrastButton;
     QVector<int>* histoVec;
     QVector<int>* cumuHistoVec;
+    QDoubleSpinBox* slowSpinBox;
+    QDoubleSpinBox* shighSpinBox;
+    
 
  private slots:
 

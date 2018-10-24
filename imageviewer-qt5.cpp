@@ -56,6 +56,7 @@ ImageViewer::ImageViewer()
     histoImage = NULL;
     cumuHistoImage = NULL;
     histoVec = NULL;
+    cumuHistoVec=NULL;
 
     resize(1600, 600);
 
@@ -100,6 +101,10 @@ ImageViewer::~ImageViewer()
     {
         delete histoVec;
     }
+    if(cumuHistoVec!=NULL)
+    {
+        delete cumuHistoVec;
+    }
 }
 
 void ImageViewer::drawRedCross()
@@ -143,6 +148,11 @@ void ImageViewer::calcValues()
     {
         delete histoVec;
     }
+    if(cumuHistoVec!=NULL)
+    {
+        delete cumuHistoVec;
+    }
+    
 
     histoImage = getHistoimage();
     cumuHistoImage = getHistoimage();
@@ -187,7 +197,7 @@ void ImageViewer::calcValues()
     {
         if( contrast[i] != 0)
         {
-            std::cout<< contrast[i] << " pro "<< max<< " MN "<<m*n<< " at "<< i<< std::endl;
+            //std::cout<< contrast[i] << " pro "<< max<< " MN "<<m*n<< " at "<< i<< std::endl;
             int maxHeight = contrast[i]*100/max;
             for (int j=0; j<maxHeight; j++)
             {
@@ -198,9 +208,11 @@ void ImageViewer::calcValues()
 
     int cumuHmax = m*n;
     int sum =0;
+    cumuHistoVec = new QVector<int>();
     for(int i=0; i<cumuHistoImage->width(); i++)
     {
         sum +=contrast[i];
+        cumuHistoVec->insert(i, sum);
         int maxHeight = sum*100/cumuHmax;
         for (int j=0; j<maxHeight; j++)
         {
@@ -326,8 +338,24 @@ void ImageViewer::generateControlPanels()
     connect(brightness, SIGNAL(valueChanged(int)), this, SLOT(changeBrightness(int)));
 
     m_option_layout2->addLayout(sliderLayout);
-
+    
+    QHBoxLayout* adjustParamsLayout = new QHBoxLayout();
+    
+    slowSpinBox = new QDoubleSpinBox();
+    slowSpinBox->setRange(0.01, 0.08);
+    slowSpinBox->setSingleStep(0.005);
+    
+    shighSpinBox = new QDoubleSpinBox();
+    shighSpinBox->setRange(0.01, 0.08);
+    shighSpinBox->setSingleStep(0.005);
+    
+    adjustParamsLayout->addWidget(slowSpinBox);
+    adjustParamsLayout->addWidget(shighSpinBox);
+    
+    m_option_layout2->addLayout(adjustParamsLayout);
+    
     adjustContrastButton = new QPushButton("Adjust Contrast");
+    connect(adjustContrastButton, SIGNAL(clicked()), this, SLOT(adjustContrast()));
     m_option_layout2->addWidget(adjustContrastButton);
 
     tabWidget->addTab(m_option_panel2,"Uebung2");
@@ -726,5 +754,57 @@ int ImageViewer::checkColor(int value)
 
 void ImageViewer::adjustContrast()
 {
-
+    
+    int n = image->width();
+    int m = image->height();
+    int entireSize = n*m;
+    int slow = static_cast<int>(slowSpinBox->value()*entireSize);
+    int shigh = static_cast<int>(shighSpinBox->value()*entireSize);
+    int low;
+    for (int i = 0; i<cumuHistoVec->size(); i++) {
+        if(cumuHistoVec->at(i) >= slow)
+        {
+            low = i;
+            std::cout << "low: " <<low << std::endl;
+            break;
+        }
+    }
+    int high;
+    std::cout << "VecSize: " <<cumuHistoVec->size() <<std::endl;
+    for(int i = cumuHistoVec->size()-1; i>=0; i--)
+    {
+        if(cumuHistoVec->at(i) <= entireSize - shigh)
+        {
+            high = i;
+            std::cout << "high: " << high << std::endl;
+            break;
+        }
+    }
+    
+    for(int i=0; i<n; i++)
+    {
+        for (int j=0; j<m; j++)
+        {
+            QColor color = QColor(image->pixel(i, j));
+            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            if(light<=low)
+            {
+                light = 0;
+            }
+            else if(light>=high)
+            {
+                light = 255;
+            }
+            else
+            {
+                light = (light-low)*255/(high-low);
+            }
+            
+            QColor c = QColor(light,light,light);
+            image->setPixelColor(i, j, c);
+            
+        }
+    }
+    
+    calcValues();
 }
