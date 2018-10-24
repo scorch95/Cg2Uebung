@@ -83,14 +83,24 @@ class ImageViewer : public QMainWindow
     QLabel* mittlereHelligkeit;
     QPushButton* convertToGreyScaleBtn;
     QLabel* histogram;
+    QLabel* cumuHistogram;
     QImage* histoImage;
+    QImage* cumuHistoImage;
     QSlider* contrast;
     QSlider* brightness;
+    QPushButton* adjustContrastButton;
+    QVector<int>* histoVec;
+    QVector<int>* cumuHistoVec;
 
  private slots:
 
      void drawRedCross();
      void convertToGreyScale();
+    
+    void changeBrightness(int value);
+    void changeContrast(int value);
+    
+    void adjustContrast();
 
      void open();
      void print();
@@ -134,9 +144,11 @@ protected:
     void renewLogging();
     void calcValues();
     
-    QSlider* getSlider(QLabel* valueLabel);
+    QSlider* getSlider(QLabel* valueLabel, int min, int max);
     
     QImage* getHistoimage();
+    
+    int checkColor(int value);
 
     QTabWidget* tabWidget;
     QTextEdit* logBrowser;
@@ -162,6 +174,9 @@ protected:
     QMenu *fileMenu;
     QMenu *viewMenu;
     QMenu *helpMenu;
+    
+    const int CONTRAST_MW = 20;
+    const int CONTRAST_MAX = 60;
 };
 
 #endif

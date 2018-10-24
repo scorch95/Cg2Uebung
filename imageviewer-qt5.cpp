@@ -51,22 +51,24 @@
 ImageViewer::ImageViewer()
 {
 
-	image=NULL;
+    image=NULL;
     backupImage=NULL;
     histoImage = NULL;
-    
-	resize(1600, 600);
-	
-	startLogging();
+    cumuHistoImage = NULL;
+    histoVec = NULL;
 
-	generateMainGui();
+    resize(1600, 600);
 
-	generateControlPanels();
-    	createActions();
-    	createMenus();
+    startLogging();
 
-    	resize(QGuiApplication::primaryScreen()->availableSize() * 0.85 );
-    
+    generateMainGui();
+
+    generateControlPanels();
+        createActions();
+        createMenus();
+
+        resize(QGuiApplication::primaryScreen()->availableSize() * 0.85 );
+
 #ifdef QT_NO_PRINTER
     logFile << "Printing not available" << std::endl;
 #else
@@ -82,58 +84,81 @@ ImageViewer::~ImageViewer()
     {
         delete image;
     }
+    if(backupImage != NULL)
+    {
+        delete backupImage;
+    }
     if(histoImage!=NULL)
     {
         delete histoImage;
+    }
+    if(cumuHistoImage!=NULL)
+    {
+        delete cumuHistoImage;
+    }
+    if(histoVec!=NULL)
+    {
+        delete histoVec;
     }
 }
 
 void ImageViewer::drawRedCross()
 {
-	if(image!=NULL)
-	{
+    if(image!=NULL)
+    {
         delete image;
         image = new QImage(*backupImage);
         QColor crossColor = QColor(Qt::GlobalColor::red);
         int sliderValue = crossSlider->value();
-        
+
         int crossWidth = image->width()*sliderValue/100;
         int crossHeight = image->height()*sliderValue/100;
-        
-		for(int i=0;i<std::min(crossWidth, crossHeight);i++)
-		{
-			// macht die Farbe schwarz, bitte recherchieren wie eine andere Farbe gesetzt wird ...
-			image->setPixelColor(i,i,crossColor);
-            image->setPixelColor(i,crossHeight-i,crossColor);
-		}
-	updateImageDisplay();
- 	logFile << "example algorithm applied " << std::endl;
-	renewLogging();
-	}
 
-       
- 	
+        for(int i=0;i<std::min(crossWidth, crossHeight);i++)
+        {
+            // macht die Farbe schwarz, bitte recherchieren wie eine andere Farbe gesetzt wird ...
+            image->setPixelColor(i,i,crossColor);
+            image->setPixelColor(i,crossHeight-i,crossColor);
+        }
+    updateImageDisplay();
+    logFile << "example algorithm applied " << std::endl;
+    renewLogging();
+    }
+
+
+
 }
 
 void ImageViewer::calcValues()
 {
+    if(histoImage!=NULL)
+    {
+        delete histoImage;
+    }
+    if(cumuHistoImage!=NULL)
+    {
+        delete cumuHistoImage;
+    }
+    if(histoVec != NULL)
+    {
+        delete histoVec;
+    }
+
+    histoImage = getHistoimage();
+    cumuHistoImage = getHistoimage();
+
     int n = image->width();
     int m = image->height();
     QVector<int> contrast(256);
     double brightness= 0.0;
     double var= 0.0;
-<<<<<<< HEAD
 
-    for(int i=0; i<m; i++)
-=======
-    
     for(int i=0; i<n; i++)
->>>>>>> 1db2dc00f9bca779466aa781c7f7260a0d00c663
     {
         for (int j=0; j<m; j++)
         {
             //double light=qGray(image->pixel(i, j));
-            
+
             QColor color = QColor(image->pixel(i, j));
             QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
             brightness += light;
@@ -171,9 +196,23 @@ void ImageViewer::calcValues()
         }
     }
 
+    int cumuHmax = m*n;
+    int sum =0;
+    for(int i=0; i<cumuHistoImage->width(); i++)
+    {
+        sum +=contrast[i];
+        int maxHeight = sum*100/cumuHmax;
+        for (int j=0; j<maxHeight; j++)
+        {
+            cumuHistoImage->setPixelColor(i, 99 - j, histogramColor);
+        }
+    }
+
     updateImageDisplay();
     mittlereHelligkeit->setText("Mittlere Helligkeit:  "+QString::number(brightness));
     varianz->setText("Varianz: "+QString::number(var));
+
+    histoVec = new QVector<int>(contrast);
 }
 
 void ImageViewer::convertToGreyScale()
@@ -197,8 +236,8 @@ void ImageViewer::convertToGreyScale()
     updateImageDisplay();
 }
 
-/**************************************************************************************** 
-*   
+/****************************************************************************************
+*
 *  mit dieser Methode können sie sich pro Aufgabe ein  Tab anlegen, in der die Ein-
 *  stellungen per Slider, Button, Checkbox etc. gemacht werden und die zu implemen-
 *  tierenden Algorithmen gestatet werden.
@@ -207,34 +246,36 @@ void ImageViewer::convertToGreyScale()
 
 void ImageViewer::generateControlPanels()
 {
-	// first tab
+    // first tab
 
     m_option_panel1 = new QWidget(this);
-	m_option_layout1 = new QVBoxLayout();
-	m_option_panel1->setLayout(m_option_layout1);      
+    m_option_layout1 = new QVBoxLayout();
+    m_option_panel1->setLayout(m_option_layout1);
 
 
-	applyCross = new QPushButton(this);
-	applyCross->setText("Apply cross");
+    applyCross = new QPushButton(this);
+    applyCross->setText("Apply cross");
 
-    crossSlider = new QSlider(this);
-    crossSlider->setRange(0, 100);
-    crossSlider->setOrientation(Qt::Horizontal);
-    
+    QFormLayout* crossLayout = new QFormLayout();
+    QLabel* crossLabel = new QLabel();
+    crossSlider = getSlider(crossLabel, 0, 100);
 
-	QObject::connect(applyCross, SIGNAL (clicked()), this, SLOT (drawRedCross()));
- 
-	m_option_layout1->addWidget(applyCross);
+    crossLayout->addRow(crossLabel, crossSlider);
+
+
+    QObject::connect(applyCross, SIGNAL (clicked()), this, SLOT (drawRedCross()));
+
+    m_option_layout1->addWidget(applyCross);
     m_option_layout1->addWidget(new QLabel("Cross Size:", this));
-    m_option_layout1->addWidget(crossSlider);
-	tabWidget->addTab(m_option_panel1,"Uebung1");
+    m_option_layout1->addLayout(crossLayout);
+    tabWidget->addTab(m_option_panel1,"Uebung1");
 
 
     // second tab
 
     m_option_panel2 = new QWidget(this);
-	m_option_layout2 = new QVBoxLayout();
-	m_option_panel2->setLayout(m_option_layout2);      
+    m_option_layout2 = new QVBoxLayout();
+    m_option_panel2->setLayout(m_option_layout2);
 
 
     convertToGreyScaleBtn = new QPushButton(this);
@@ -242,7 +283,7 @@ void ImageViewer::generateControlPanels()
     QObject::connect(convertToGreyScaleBtn, SIGNAL (clicked()), this, SLOT (convertToGreyScale()));
 
     mittlereHelligkeit = new QLabel("Mittlere Helligkeit: ", this);
-    varianz = new QLabel("Varinaz: ", this);
+    varianz = new QLabel("Varianz: ", this);
 
     histogram = new QLabel(this);
     histoImage = getHistoimage();
@@ -250,34 +291,51 @@ void ImageViewer::generateControlPanels()
     histogram->setPixmap(QPixmap::fromImage(*histoImage));
     histogram->resize(2. * histogram->pixmap()->size());
 
+    cumuHistogram = new QLabel(this);
+    cumuHistoImage = getHistoimage();
+    cumuHistogram->adjustSize();
+    cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
+    cumuHistogram->resize(2. * cumuHistogram->pixmap()->size());
+
     m_option_layout2->addWidget(mittlereHelligkeit);
     m_option_layout2->addWidget(varianz);
     m_option_layout2->addWidget(histogram);
+    m_option_layout2->addWidget(cumuHistogram);
     m_option_layout2->addWidget(convertToGreyScaleBtn);
-    
+
     QLabel* contrastLabel = new QLabel(this);
-    contrast = getSlider(contrastLabel);
-    QFormLayout* contrastLayout = new QFormLayout();
-    contrastLayout->addRow(contrastLabel, contrast);
-    
+    contrast = getSlider(contrastLabel, 0, CONTRAST_MAX);
+    contrast->setValue(CONTRAST_MW);
+    QVBoxLayout* contrastLayout = new QVBoxLayout();
+    contrastLayout->addWidget(contrastLabel);
+    contrastLayout->addWidget(contrast);
+
+
     QLabel* brightnessLabel = new QLabel(this);
-    brightness = getSlider(brightnessLabel);
-    QFormLayout* brightnessLayout = new QFormLayout();
-    brightnessLayout->addRow(brightnessLabel, brightness);
-    
+    brightness = getSlider(brightnessLabel, -255, 255);
+    QVBoxLayout* brightnessLayout = new QVBoxLayout();
+    brightnessLayout->addWidget(brightnessLabel);
+    brightnessLayout->addWidget(brightness);
+
     QFormLayout* sliderLayout = new QFormLayout();
-    
+
     sliderLayout->addRow(new QLabel("Contrast: ", this), contrastLayout);
     sliderLayout->addRow(new QLabel("Brightness: ", this), brightnessLayout);
-    
+
+    connect(contrast, SIGNAL(valueChanged(int)), this, SLOT(changeContrast(int)));
+    connect(brightness, SIGNAL(valueChanged(int)), this, SLOT(changeBrightness(int)));
+
     m_option_layout2->addLayout(sliderLayout);
 
-	tabWidget->addTab(m_option_panel2,"Uebung2");
+    adjustContrastButton = new QPushButton("Adjust Contrast");
+    m_option_layout2->addWidget(adjustContrastButton);
 
-	tabWidget->show();
+    tabWidget->addTab(m_option_panel2,"Uebung2");
+
+    tabWidget->show();
 
 
-	// Hinweis: Es bietet sich an pro Aufgabe jeweils einen solchen Tab zu erstellen
+    // Hinweis: Es bietet sich an pro Aufgabe jeweils einen solchen Tab zu erstellen
 
 }
 
@@ -287,9 +345,9 @@ void ImageViewer::generateControlPanels()
 
 
 
-/**************************************************************************************** 
+/****************************************************************************************
 *
-*   ab hier kommen technische Details, die nicht notwenig für das Verständnis und die 
+*   ab hier kommen technische Details, die nicht notwenig für das Verständnis und die
 *   Bearbeitung sind.
 *
 *
@@ -299,89 +357,90 @@ void ImageViewer::generateControlPanels()
 
 void ImageViewer::startLogging()
 {
-	//LogFile
-	logFile.open("log.txt", std::ios::out);
-	logFile << "Logging: \n" << std::endl;
+    //LogFile
+    logFile.open("log.txt", std::ios::out);
+    logFile << "Logging: \n" << std::endl;
 }
 
 void ImageViewer::renewLogging()
 {
-	QFile file("log.txt"); // Create a file handle for the file named
-	QString line;
-	file.open(QIODevice::ReadOnly); // Open the file
+    QFile file("log.txt"); // Create a file handle for the file named
+    QString line;
+    file.open(QIODevice::ReadOnly); // Open the file
 
-	QTextStream stream( &file ); // Set the stream to read from myFile
-	logBrowser->clear();
-	while(!stream.atEnd()){
+    QTextStream stream( &file ); // Set the stream to read from myFile
+    logBrowser->clear();
+    while(!stream.atEnd()){
 
-		line = stream.readLine(); // this reads a line (QString) from the file
-		logBrowser->append(line);
-	}
+        line = stream.readLine(); // this reads a line (QString) from the file
+        logBrowser->append(line);
+    }
 }
 
 
 void ImageViewer::resizeEvent(QResizeEvent * event)
 {
-	QMainWindow::resizeEvent(event);
-	centralwidget->setMinimumWidth(width());	
-    	centralwidget->setMinimumHeight(height());
-	centralwidget->setMaximumWidth(width());	
-    	centralwidget->setMaximumHeight(height());
- 	logBrowser->setMinimumWidth(width()-40);
-    	logBrowser->setMaximumWidth(width()-40);
+    QMainWindow::resizeEvent(event);
+    centralwidget->setMinimumWidth(width());
+        centralwidget->setMinimumHeight(height());
+    centralwidget->setMaximumWidth(width());
+        centralwidget->setMaximumHeight(height());
+    logBrowser->setMinimumWidth(width()-40);
+        logBrowser->setMaximumWidth(width()-40);
 }
 
 void ImageViewer::updateImageDisplay()
 {
     imageLabel->setPixmap(QPixmap::fromImage(*image));
     histogram->setPixmap(QPixmap::fromImage(*histoImage));
+    cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
 
 }
 
 
 void ImageViewer::generateMainGui()
 {
-	/* Tab widget */
+    /* Tab widget */
         tabWidget = new QTabWidget(this);
-	tabWidget->setObjectName(QStringLiteral("tabWidget"));
-	
+    tabWidget->setObjectName(QStringLiteral("tabWidget"));
 
 
-	/* Center widget */
-	centralwidget = new QWidget(this);
-	centralwidget->setObjectName(QStringLiteral("centralwidget"));
-	//centralwidget->setFixedSize(200,200);
-	//setCentralWidget(centralwidget);
 
-    	imageLabel = new QLabel(this);
- 	imageLabel->setBackgroundRole(QPalette::Base);
-    	imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    	imageLabel->setScaledContents(true);
-	
+    /* Center widget */
+    centralwidget = new QWidget(this);
+    centralwidget->setObjectName(QStringLiteral("centralwidget"));
+    //centralwidget->setFixedSize(200,200);
+    //setCentralWidget(centralwidget);
 
-	/* Center widget */
-	scrollArea = new QScrollArea(this);
-   	scrollArea->setBackgroundRole(QPalette::Dark);
-    	scrollArea->setWidget(imageLabel);
-	
-	
-    	setCentralWidget(scrollArea);
+        imageLabel = new QLabel(this);
+    imageLabel->setBackgroundRole(QPalette::Base);
+        imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        imageLabel->setScaledContents(true);
 
-	/* HBox layout */
-	QGridLayout* gLayout = new QGridLayout(centralwidget);
-	gLayout->setObjectName(QStringLiteral("hboxLayout"));
-	gLayout->addWidget(new QLabel(this),1,1);
-	gLayout->setVerticalSpacing(50);
-	gLayout->addWidget(tabWidget,2,1);
-	gLayout->addWidget(scrollArea,2,2);
-	
-	logBrowser= new QTextEdit(this);
-	logBrowser->setMinimumHeight(100);
-	logBrowser->setMaximumHeight(200);
-	logBrowser->setMinimumWidth(width());
-	logBrowser->setMaximumWidth(width());
-	gLayout->addWidget(logBrowser,3,1,1,2);
-	gLayout->setVerticalSpacing(50);
+
+    /* Center widget */
+    scrollArea = new QScrollArea(this);
+    scrollArea->setBackgroundRole(QPalette::Dark);
+        scrollArea->setWidget(imageLabel);
+
+
+        setCentralWidget(scrollArea);
+
+    /* HBox layout */
+    QGridLayout* gLayout = new QGridLayout(centralwidget);
+    gLayout->setObjectName(QStringLiteral("hboxLayout"));
+    gLayout->addWidget(new QLabel(this),1,1);
+    gLayout->setVerticalSpacing(50);
+    gLayout->addWidget(tabWidget,2,1);
+    gLayout->addWidget(scrollArea,2,2);
+
+    logBrowser= new QTextEdit(this);
+    logBrowser->setMinimumHeight(100);
+    logBrowser->setMaximumHeight(200);
+    logBrowser->setMinimumWidth(width());
+    logBrowser->setMaximumWidth(width());
+    gLayout->addWidget(logBrowser,3,1,1,2);
+    gLayout->setVerticalSpacing(50);
 }
 
 
@@ -389,17 +448,12 @@ bool ImageViewer::loadFile(const QString &fileName)
 {
     if(image!=NULL)
     {
-	delete image;
-	image=NULL;
+    delete image;
+    image=NULL;
     }
 
     image = new QImage(fileName);
-    if(histoImage!=NULL)
-    {
-        delete histoImage;
-    }
-    histoImage = getHistoimage();
-    
+
     if(backupImage != NULL)
     {
         delete backupImage;
@@ -414,10 +468,10 @@ bool ImageViewer::loadFile(const QString &fileName)
         imageLabel->adjustSize();
         return false;
     }
-    
+
     scaleFactor = 1.0;
 
-   
+
     updateImageDisplay();
 
     printAct->setEnabled(true);
@@ -430,9 +484,9 @@ bool ImageViewer::loadFile(const QString &fileName)
     setWindowFilePath(fileName);
     logFile << "geladen: " << fileName.toStdString().c_str()  << std::endl;
     renewLogging();
-    
+
     calcValues();
-    
+
     return true;
 }
 
@@ -614,18 +668,63 @@ QImage* ImageViewer::getHistoimage()
 {
     QImage* returnImage = new QImage(256,100, QImage::Format_RGB32);
     returnImage->fill(QColor(183, 183, 183));
-    
+
     return returnImage;
 }
 
-QSlider* ImageViewer::getSlider(QLabel* valueLabel)
+QSlider* ImageViewer::getSlider(QLabel* valueLabel, int min, int max)
 {
-    QSlider* returnSlider = new QSlider(this);
-    
-    returnSlider->setRange(0, 255);
-    returnSlider->setOrientation(Qt::Horizontal);
-    connect(returnSlider, SIGNAL(valueChanged(int)), valueLabel, SLOT(setNum(int)));
-    
-    
-    return returnSlider;
+        QSlider* returnSlider = new QSlider(this);
+
+        returnSlider->setRange(min, max);
+        returnSlider->setValue(0);
+        returnSlider->setOrientation(Qt::Horizontal);
+        connect(returnSlider, SIGNAL(valueChanged(int)), valueLabel, SLOT(setNum(int)));
+
+        valueLabel->setNum(returnSlider->value());
+        return returnSlider;
+}
+
+void ImageViewer::changeContrast(int value)
+{
+    //value=contrast->maximum()-value;
+    if(backupImage==NULL||image==NULL)
+    {
+        return;
+    }
+    for(int i = 0; i<backupImage->width(); i++)
+    {
+        for (int j = 0; j<backupImage->height(); j++)
+        {
+            QColor color = QColor(backupImage->pixel(i, j));
+            //QRgb light = color.red() + color.green() + color.blue();
+
+            color.setRed(checkColor((color.red()+brightness->value())*value/(double)CONTRAST_MW));
+            color.setGreen(checkColor((color.green()+brightness->value())*value/(double)CONTRAST_MW));
+            color.setBlue(checkColor((color.blue()+brightness->value())*value/(double)CONTRAST_MW));
+            //QColor c = QColor(light+value,light+value,light+value);
+            image->setPixelColor(i, j, color);
+
+        }
+    }
+    calcValues();
+}
+
+void ImageViewer::changeBrightness(int value)
+{
+    changeContrast(contrast->value());
+}
+
+int ImageViewer::checkColor(int value)
+{
+    if(value > 255)
+        value = 255;
+    if(value < 0)
+        value = 0;
+    return value;
+}
+
+void ImageViewer::adjustContrast()
+{
+
 }
