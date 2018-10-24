@@ -236,7 +236,7 @@ void ImageViewer::convertToGreyScale()
     {
         for (int j=0; j<m; j++)
         {
-            QColor color = QColor(image->pixel(i, j));
+            QColor color = QColor(backupImage->pixel(i, j));
             QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
 
             QColor c = QColor(light,light,light);
@@ -245,7 +245,7 @@ void ImageViewer::convertToGreyScale()
         }
     }
 
-    updateImageDisplay();
+    calcValues();
 }
 
 /****************************************************************************************
@@ -359,6 +359,27 @@ void ImageViewer::generateControlPanels()
     m_option_layout2->addWidget(adjustContrastButton);
 
     tabWidget->addTab(m_option_panel2,"Uebung2");
+    
+    m_option_panel3 = new QWidget(this);
+    m_option_layout3 = new QVBoxLayout();
+    m_option_panel3->setLayout(m_option_layout3);
+    
+    secHistogram = new QLabel();
+    secHistogram->setPixmap(QPixmap::fromImage(*histoImage));
+    secCumuHistogram = new QLabel();
+    secCumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
+    
+    QHBoxLayout* histoLayout = new QHBoxLayout();
+    histoLayout->addWidget(secHistogram);
+    histoLayout->addWidget(secCumuHistogram);
+    
+    m_option_layout3->addLayout(histoLayout);
+    histoAdjustButton = new QPushButton("Linearer Histogramausgleich");
+    connect(histoAdjustButton, SIGNAL(clicked()), this, SLOT(adjustHistoLin()));
+    
+    m_option_layout3->addWidget(histoAdjustButton);
+    
+    tabWidget->addTab(m_option_panel3, "Uebung3");
 
     tabWidget->show();
 
@@ -422,6 +443,8 @@ void ImageViewer::updateImageDisplay()
     imageLabel->setPixmap(QPixmap::fromImage(*image));
     histogram->setPixmap(QPixmap::fromImage(*histoImage));
     cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
+    secHistogram->setPixmap(QPixmap::fromImage(*histoImage));
+    secCumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
 
 }
 
@@ -800,6 +823,27 @@ void ImageViewer::adjustContrast()
                 light = (light-low)*255/(high-low);
             }
             
+            QColor c = QColor(light,light,light);
+            image->setPixelColor(i, j, c);
+            
+        }
+    }
+    
+    calcValues();
+}
+
+void ImageViewer::adjustHistoLin()
+{
+    int n = image->width();
+    int m = image->height();
+    
+    for(int i=0; i<n; i++)
+    {
+        for (int j=0; j<m; j++)
+        {
+            QColor color = QColor(backupImage->pixel(i, j));
+            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            light = cumuHistoVec->at(light)*255/(m*n);
             QColor c = QColor(light,light,light);
             image->setPixelColor(i, j, c);
             

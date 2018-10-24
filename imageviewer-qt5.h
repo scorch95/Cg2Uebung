@@ -70,6 +70,9 @@ class ImageViewer : public QMainWindow
 
      QWidget*	m_option_panel2;
      QVBoxLayout*    m_option_layout2;
+    
+    QWidget*    m_option_panel3;
+    QVBoxLayout*    m_option_layout3;
 
     
 
@@ -95,6 +98,12 @@ class ImageViewer : public QMainWindow
     QDoubleSpinBox* slowSpinBox;
     QDoubleSpinBox* shighSpinBox;
     
+    // Uebung3
+    QPushButton* histoAdjustButton;
+    QLabel* secCumuHistogram;
+    QLabel* secHistogram;
+    QPushButton* linHistoAdjust;
+    
 
  private slots:
 
@@ -105,6 +114,7 @@ class ImageViewer : public QMainWindow
     void changeContrast(int value);
     
     void adjustContrast();
+    void adjustHistoLin();
 
      void open();
      void print();
