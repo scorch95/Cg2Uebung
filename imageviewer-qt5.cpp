@@ -44,7 +44,7 @@
 #include <QPrinter>
 #endif
 #include<iostream>
-
+#include "ImageObj.h"
 
 #include "imageviewer-qt5.h"
 
@@ -109,144 +109,49 @@ ImageViewer::~ImageViewer()
 
 void ImageViewer::drawRedCross()
 {
-    if(image!=NULL)
-    {
-        delete image;
-        image = new QImage(*backupImage);
-        QColor crossColor = QColor(Qt::GlobalColor::red);
-        int sliderValue = crossSlider->value();
-
-        int crossWidth = image->width()*sliderValue/100;
-        int crossHeight = image->height()*sliderValue/100;
-
-        for(int i=0;i<std::min(crossWidth, crossHeight);i++)
-        {
-            // macht die Farbe schwarz, bitte recherchieren wie eine andere Farbe gesetzt wird ...
-            image->setPixelColor(i,i,crossColor);
-            image->setPixelColor(i,crossHeight-i,crossColor);
-        }
+    imgObj->drawRedCross(crossSlider->value());
     updateImageDisplay();
-    logFile << "example algorithm applied " << std::endl;
-    renewLogging();
-    }
-
-
-
 }
 
 void ImageViewer::calcValues()
 {
-    if(histoImage!=NULL)
-    {
-        delete histoImage;
-    }
-    if(cumuHistoImage!=NULL)
-    {
-        delete cumuHistoImage;
-    }
-    if(histoVec != NULL)
-    {
-        delete histoVec;
-    }
-    if(cumuHistoVec!=NULL)
-    {
-        delete cumuHistoVec;
-    }
-    
-
-    histoImage = getHistoimage();
-    cumuHistoImage = getHistoimage();
-
-    int n = image->width();
-    int m = image->height();
-    QVector<int> contrast(256);
-    double brightness= 0.0;
-    double var= 0.0;
-
-    for(int i=0; i<n; i++)
-    {
-        for (int j=0; j<m; j++)
-        {
-            //double light=qGray(image->pixel(i, j));
-
-            QColor color = QColor(image->pixel(i, j));
-            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
-            brightness += light;
-            contrast[light]++;
-            //std::cout<< i*n+j << std::endl;
-        }
-    }
-
-    brightness /= m*n;
-
-    for(int i=0; i<n; i++)
-    {
-        for (int j=0; j<m; j++)
-        {
-            QColor color = QColor(image->pixel(i, j));
-            double light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
-            var += std::pow(light-brightness, 2);
-        }
-    }
-
-    var /= m*n;
-
-    QColor histogramColor = QColor(Qt::GlobalColor::black);
-    int max = *std::max_element(contrast.begin(), contrast.end());
-    for(int i=0; i<histoImage->width(); i++)
-    {
-        if( contrast[i] != 0)
-        {
-            //std::cout<< contrast[i] << " pro "<< max<< " MN "<<m*n<< " at "<< i<< std::endl;
-            int maxHeight = contrast[i]*100/max;
-            for (int j=0; j<maxHeight; j++)
-            {
-                histoImage->setPixelColor(i, 99 - j, histogramColor);
-            }
-        }
-    }
-
-    int cumuHmax = m*n;
-    int sum =0;
-    cumuHistoVec = new QVector<int>();
-    for(int i=0; i<cumuHistoImage->width(); i++)
-    {
-        sum +=contrast[i];
-        cumuHistoVec->insert(i, sum);
-        int maxHeight = sum*100/cumuHmax;
-        for (int j=0; j<maxHeight; j++)
-        {
-            cumuHistoImage->setPixelColor(i, 99 - j, histogramColor);
-        }
-    }
+    imgObj->calcValues();
 
     updateImageDisplay();
-    mittlereHelligkeit->setText("Mittlere Helligkeit:  "+QString::number(brightness));
-    varianz->setText("Varianz: "+QString::number(var));
+    mittlereHelligkeit->setText("Mittlere Helligkeit:  "+QString::number(imgObj->getBrightness()));
+    varianz->setText("Varianz: "+QString::number(imgObj->getVarianz()));
 
-    histoVec = new QVector<int>(contrast);
 }
 
 void ImageViewer::convertToGreyScale()
 {
-    int n = image->width();
-    int m = image->height();
 
-    for(int i=0; i<n; i++)
-    {
-        for (int j=0; j<m; j++)
-        {
-            QColor color = QColor(backupImage->pixel(i, j));
-            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
-
-            QColor c = QColor(light,light,light);
-            image->setPixelColor(i, j, c);
-
-        }
-    }
-
-    calcValues();
 }
+
+void ImageViewer::changeContrast(int value)
+{
+    imgObj->changeContrast(value);
+    updateImageDisplay();
+}
+
+void ImageViewer::changeBrightness(int value)
+{
+    imgObj->changeBrightness(value);
+    updateImageDisplay();
+}
+
+void ImageViewer::adjustContrast()
+{
+    imgObj->adjustContrast(slowSpinBox->value(), shighSpinBox->value());
+    updateImageDisplay();
+}
+
+void ImageViewer::adjustHistoLin()
+{
+    imgObj->adjustHistoLin();
+    updateImageDisplay();
+}
+
 
 /****************************************************************************************
 *
@@ -298,13 +203,13 @@ void ImageViewer::generateControlPanels()
     varianz = new QLabel("Varianz: ", this);
 
     histogram = new QLabel(this);
-    histoImage = getHistoimage();
+    histoImage = imgObj->getBlankHistoimage();
     histogram->adjustSize();
     histogram->setPixmap(QPixmap::fromImage(*histoImage));
     histogram->resize(2. * histogram->pixmap()->size());
 
     cumuHistogram = new QLabel(this);
-    cumuHistoImage = getHistoimage();
+    cumuHistoImage = imgObj->getBlankHistoimage();
     cumuHistogram->adjustSize();
     cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
     cumuHistogram->resize(2. * cumuHistogram->pixmap()->size());
@@ -440,6 +345,10 @@ void ImageViewer::resizeEvent(QResizeEvent * event)
 
 void ImageViewer::updateImageDisplay()
 {
+    image = imgObj->getImage();
+    histoImage = imgObj->getHistoImage();
+    cumuHistoImage = imgObj->getCumuHistoImage();
+
     imageLabel->setPixmap(QPixmap::fromImage(*image));
     histogram->setPixmap(QPixmap::fromImage(*histoImage));
     cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
@@ -503,7 +412,13 @@ bool ImageViewer::loadFile(const QString &fileName)
     image=NULL;
     }
 
+    if(imgObj != NULL){
+        delete imgObj;
+    }
+
     image = new QImage(fileName);
+    imgObj = new ImageObj(image);
+    //image = imgObj->getImage();
 
     if(backupImage != NULL)
     {
@@ -717,10 +632,6 @@ void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
 
 QImage* ImageViewer::getHistoimage()
 {
-    QImage* returnImage = new QImage(256,100, QImage::Format_RGB32);
-    returnImage->fill(QColor(183, 183, 183));
-
-    return returnImage;
 }
 
 QSlider* ImageViewer::getSlider(QLabel* valueLabel, int min, int max)
@@ -736,119 +647,3 @@ QSlider* ImageViewer::getSlider(QLabel* valueLabel, int min, int max)
         return returnSlider;
 }
 
-void ImageViewer::changeContrast(int value)
-{
-    //value=contrast->maximum()-value;
-    if(backupImage==NULL||image==NULL)
-    {
-        return;
-    }
-    for(int i = 0; i<backupImage->width(); i++)
-    {
-        for (int j = 0; j<backupImage->height(); j++)
-        {
-            QColor color = QColor(backupImage->pixel(i, j));
-            //QRgb light = color.red() + color.green() + color.blue();
-
-            color.setRed(checkColor((color.red()+brightness->value())*value/(double)CONTRAST_MW));
-            color.setGreen(checkColor((color.green()+brightness->value())*value/(double)CONTRAST_MW));
-            color.setBlue(checkColor((color.blue()+brightness->value())*value/(double)CONTRAST_MW));
-            //QColor c = QColor(light+value,light+value,light+value);
-            image->setPixelColor(i, j, color);
-
-        }
-    }
-    calcValues();
-}
-
-void ImageViewer::changeBrightness(int value)
-{
-    changeContrast(contrast->value());
-}
-
-int ImageViewer::checkColor(int value)
-{
-    if(value > 255)
-        value = 255;
-    if(value < 0)
-        value = 0;
-    return value;
-}
-
-void ImageViewer::adjustContrast()
-{
-    
-    int n = image->width();
-    int m = image->height();
-    int entireSize = n*m;
-    int slow = static_cast<int>(slowSpinBox->value()*entireSize);
-    int shigh = static_cast<int>(shighSpinBox->value()*entireSize);
-    int low;
-    for (int i = 0; i<cumuHistoVec->size(); i++) {
-        if(cumuHistoVec->at(i) >= slow)
-        {
-            low = i;
-            std::cout << "low: " <<low << std::endl;
-            break;
-        }
-    }
-    int high;
-    std::cout << "VecSize: " <<cumuHistoVec->size() <<std::endl;
-    for(int i = cumuHistoVec->size()-1; i>=0; i--)
-    {
-        if(cumuHistoVec->at(i) <= entireSize - shigh)
-        {
-            high = i;
-            std::cout << "high: " << high << std::endl;
-            break;
-        }
-    }
-    
-    for(int i=0; i<n; i++)
-    {
-        for (int j=0; j<m; j++)
-        {
-            QColor color = QColor(image->pixel(i, j));
-            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
-            if(light<=low)
-            {
-                light = 0;
-            }
-            else if(light>=high)
-            {
-                light = 255;
-            }
-            else
-            {
-                light = (light-low)*255/(high-low);
-            }
-            
-            QColor c = QColor(light,light,light);
-            image->setPixelColor(i, j, c);
-            
-        }
-    }
-    
-    calcValues();
-}
-
-void ImageViewer::adjustHistoLin()
-{
-    int n = image->width();
-    int m = image->height();
-    
-    for(int i=0; i<n; i++)
-    {
-        for (int j=0; j<m; j++)
-        {
-            QColor color = QColor(backupImage->pixel(i, j));
-            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
-            light = cumuHistoVec->at(light)*255/(m*n);
-            QColor c = QColor(light,light,light);
-            image->setPixelColor(i, j, c);
-            
-        }
-    }
-    
-    calcValues();
-}

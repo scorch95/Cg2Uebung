@@ -42,7 +42,7 @@
 #define IMAGEVIEWER_H
 
 #include <QMainWindow>
-
+#include "ImageObj.h"
 #include "fstream"
 
 class QAction;
@@ -172,6 +172,8 @@ protected:
     double scaleFactor;
     QImage* image;
     QImage* backupImage;
+
+    ImageObj* imgObj;
 
     std::fstream logFile;
 
