@@ -44,6 +44,8 @@ ImageObj::~ImageObj(){
 
 void ImageObj::calcValues(){
     setPointersToNull();
+    histoImage = getBlankHistoimage();
+    cumuHistoImage= getBlankHistoimage();
     QVector<int> contrast(256);
     for(int i=0; i<width; i++)
     {

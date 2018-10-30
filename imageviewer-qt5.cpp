@@ -50,14 +50,11 @@
 
 ImageViewer::ImageViewer()
 {
-
-    image=nullptr;
-    backupImage=nullptr;
     histoImage = nullptr;
     cumuHistoImage = nullptr;
     histoVec = nullptr;
     cumuHistoVec=nullptr;
-
+    imgObj=nullptr;
     resize(1600, 600);
 
     startLogging();
@@ -81,14 +78,6 @@ ImageViewer::ImageViewer()
 
 ImageViewer::~ImageViewer()
 {
-    if(image!=nullptr)
-    {
-        delete image;
-    }
-    if(backupImage != nullptr)
-    {
-        delete backupImage;
-    }
     if(histoImage!=nullptr)
     {
         delete histoImage;
@@ -105,6 +94,11 @@ ImageViewer::~ImageViewer()
     {
         delete cumuHistoVec;
     }
+    if(imgObj!=nullptr)
+    {
+        delete imgObj;
+    }
+    
 }
 
 void ImageViewer::drawRedCross()
@@ -269,6 +263,13 @@ void ImageViewer::generateControlPanels()
     m_option_layout3 = new QVBoxLayout();
     m_option_panel3->setLayout(m_option_layout3);
     
+    imageLabel2 = new QLabel();
+    m_option_layout3->addWidget(imageLabel2);
+    
+    openSecButton = new QPushButton("Open");
+    connect(openSecButton, SIGNAL(clicked()), this, SLOT(openSecImage()));
+    m_option_layout3->addWidget(openSecButton);
+    
     secHistogram = new QLabel();
     secHistogram->setPixmap(QPixmap::fromImage(*histoImage));
     secCumuHistogram = new QLabel();
@@ -345,11 +346,10 @@ void ImageViewer::resizeEvent(QResizeEvent * event)
 
 void ImageViewer::updateImageDisplay()
 {
-    image = imgObj->getImage();
     histoImage = imgObj->getHistoImage();
     cumuHistoImage = imgObj->getCumuHistoImage();
 
-    imageLabel->setPixmap(QPixmap::fromImage(*image));
+    imageLabel->setPixmap(QPixmap::fromImage(*imgObj->getImage()));
     histogram->setPixmap(QPixmap::fromImage(*histoImage));
     cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
     secHistogram->setPixmap(QPixmap::fromImage(*histoImage));
@@ -406,27 +406,16 @@ void ImageViewer::generateMainGui()
 
 bool ImageViewer::loadFile(const QString &fileName)
 {
-    if(image!=nullptr)
-    {
-    delete image;
-    image=nullptr;
-    }
 
     if(imgObj != nullptr){
         delete imgObj;
     }
 
-    image = new QImage(fileName);
-    imgObj = new ImageObj(image);
+    imgObj = new ImageObj(new QImage(fileName));
     //image = imgObj->getImage();
 
-    if(backupImage != nullptr)
-    {
-        delete backupImage;
-    }
-    backupImage = new QImage(*image);
 
-    if (image->isNull()) {
+    if (imgObj->getImage()->isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
                                  tr("Cannot load %1.").arg(QDir::toNativeSeparators(fileName)));
         setWindowFilePath(QString());
@@ -456,14 +445,27 @@ bool ImageViewer::loadFile(const QString &fileName)
     return true;
 }
 
-
+void ImageViewer::openSecImage()
+{
+    ImageObj* tmpImgObj = imgObj;
+    QLabel* tmpLabel = imageLabel;
+    
+    imgObj = imgObj2;
+    imageLabel= imageLabel2;
+    open();
+    
+    
+    
+    imgObj = tmpImgObj;
+    imageLabel = tmpLabel;
+}
 
 
 void ImageViewer::open()
 {
     QStringList mimeTypeFilters;
     foreach (const QByteArray &mimeTypeName, QImageReader::supportedMimeTypes())
-        mimeTypeFilters.append(mimeTypeName);
+    mimeTypeFilters.append(mimeTypeName);
     mimeTypeFilters.sort();
     const QStringList picturesLocations = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
     QFileDialog dialog(this, tr("Open File"),
@@ -471,9 +473,10 @@ void ImageViewer::open()
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setMimeTypeFilters(mimeTypeFilters);
     dialog.selectMimeTypeFilter("image/jpeg");
-
-
+    
+    
     while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().first())) {}
+
 }
 
 void ImageViewer::print()
@@ -630,9 +633,6 @@ void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
                             + ((factor - 1) * scrollBar->pageStep()/2)));
 }
 
-QImage* ImageViewer::getHistoimage()
-{
-}
 
 QSlider* ImageViewer::getSlider(QLabel* valueLabel, int min, int max)
 {

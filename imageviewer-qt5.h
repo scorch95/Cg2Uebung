@@ -103,12 +103,15 @@ class ImageViewer : public QMainWindow
     QLabel* secCumuHistogram;
     QLabel* secHistogram;
     QPushButton* linHistoAdjust;
+    QPushButton* openSecButton;
     
 
  private slots:
 
      void drawRedCross();
      void convertToGreyScale();
+    
+    void openSecImage();
     
     void changeBrightness(int value);
     void changeContrast(int value);
@@ -132,7 +135,7 @@ class ImageViewer : public QMainWindow
 public:
      ImageViewer();
      virtual ~ImageViewer();
-     bool loadFile(const QString &);
+    bool loadFile(const QString &fileName);
      void updateImageDisplay();
 
 protected:
@@ -160,20 +163,19 @@ protected:
     
     QSlider* getSlider(QLabel* valueLabel, int min, int max);
     
-    QImage* getHistoimage();
-    
     int checkColor(int value);
+    
 
     QTabWidget* tabWidget;
     QTextEdit* logBrowser;
     QWidget* centralwidget;
     QLabel* imageLabel;
+    QLabel* imageLabel2;
     QScrollArea* scrollArea;
     double scaleFactor;
-    QImage* image;
-    QImage* backupImage;
 
     ImageObj* imgObj;
+    ImageObj* imgObj2;
 
     std::fstream logFile;
 
@@ -191,8 +193,6 @@ protected:
     QMenu *viewMenu;
     QMenu *helpMenu;
     
-    const int CONTRAST_MW = 20;
-    const int CONTRAST_MAX = 60;
 };
 
 #endif
