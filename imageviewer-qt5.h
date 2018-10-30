@@ -192,7 +192,6 @@ protected:
     QMenu *fileMenu;
     QMenu *viewMenu;
     QMenu *helpMenu;
-    
 };
 
 #endif

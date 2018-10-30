@@ -215,8 +215,8 @@ void ImageViewer::generateControlPanels()
     m_option_layout2->addWidget(convertToGreyScaleBtn);
 
     QLabel* contrastLabel = new QLabel(this);
-    contrast = getSlider(contrastLabel, 0, CONTRAST_MAX);
-    contrast->setValue(CONTRAST_MW);
+    contrast = getSlider(contrastLabel, 0, ImageObj::CONTRAST_MAX);
+    contrast->setValue(ImageObj::CONTRAST_MW);
     QVBoxLayout* contrastLayout = new QVBoxLayout();
     contrastLayout->addWidget(contrastLabel);
     contrastLayout->addWidget(contrast);

@@ -15,6 +15,10 @@ class ImageObj
 {
     
 public:
+    static const int CONTRAST_MW = 20;
+    static const int CONTRAST_MAX = 60;
+    
+    
     ImageObj(QImage* img);
     ~ImageObj();
     
@@ -39,8 +43,6 @@ public:
     void changeBrightness(int brightnessValue);
     
 private:
-    const int CONTRAST_MW = 20;
-    const int CONTRAST_MAX = 60;
 
     QImage* image;
     QImage* copyImage;
