@@ -51,12 +51,12 @@
 ImageViewer::ImageViewer()
 {
 
-    image=NULL;
-    backupImage=NULL;
-    histoImage = NULL;
-    cumuHistoImage = NULL;
-    histoVec = NULL;
-    cumuHistoVec=NULL;
+    image=nullptr;
+    backupImage=nullptr;
+    histoImage = nullptr;
+    cumuHistoImage = nullptr;
+    histoVec = nullptr;
+    cumuHistoVec=nullptr;
 
     resize(1600, 600);
 
@@ -81,27 +81,27 @@ ImageViewer::ImageViewer()
 
 ImageViewer::~ImageViewer()
 {
-    if(image!=NULL)
+    if(image!=nullptr)
     {
         delete image;
     }
-    if(backupImage != NULL)
+    if(backupImage != nullptr)
     {
         delete backupImage;
     }
-    if(histoImage!=NULL)
+    if(histoImage!=nullptr)
     {
         delete histoImage;
     }
-    if(cumuHistoImage!=NULL)
+    if(cumuHistoImage!=nullptr)
     {
         delete cumuHistoImage;
     }
-    if(histoVec!=NULL)
+    if(histoVec!=nullptr)
     {
         delete histoVec;
     }
-    if(cumuHistoVec!=NULL)
+    if(cumuHistoVec!=nullptr)
     {
         delete cumuHistoVec;
     }
@@ -406,13 +406,13 @@ void ImageViewer::generateMainGui()
 
 bool ImageViewer::loadFile(const QString &fileName)
 {
-    if(image!=NULL)
+    if(image!=nullptr)
     {
     delete image;
-    image=NULL;
+    image=nullptr;
     }
 
-    if(imgObj != NULL){
+    if(imgObj != nullptr){
         delete imgObj;
     }
 
@@ -420,7 +420,7 @@ bool ImageViewer::loadFile(const QString &fileName)
     imgObj = new ImageObj(image);
     //image = imgObj->getImage();
 
-    if(backupImage != NULL)
+    if(backupImage != nullptr)
     {
         delete backupImage;
     }

@@ -7,6 +7,7 @@
 
 #include "ImageObj.h"
 #include <iostream>
+#include <cmath>
 
 ImageObj::ImageObj(QImage* img){
     image = new QImage(*img);
@@ -24,14 +25,17 @@ ImageObj::ImageObj(QImage* img){
 
     contrastFactor = 1;
     brightnessValue = 0;
+    
+    histoVec = nullptr;
+    cumuHistoVec = nullptr;
 }
 
 ImageObj::~ImageObj(){
-    if(image!=NULL)
+    if(image!=nullptr)
     {
         delete image;
     }
-    if(copyImage!=NULL)
+    if(copyImage!=nullptr)
     {
         delete copyImage;
     }
@@ -86,7 +90,7 @@ void ImageObj::calcValues(){
     }
 
     int sum =0;
-    cumuHistoVec = new QVector<int>();
+    cumuHistoVec = new QVector<int>(cumuHistoImage->width());
     for(int i=0; i<cumuHistoImage->width(); i++)
     {
         sum +=contrast[i];
@@ -102,7 +106,7 @@ void ImageObj::calcValues(){
 }
 
 void ImageObj::overrideImage(){
-    if( copyImage ==NULL||image==NULL)
+    if( copyImage ==nullptr||image==nullptr)
     {
         return;
     }
@@ -146,7 +150,7 @@ QImage* ImageObj::getImage() const{
 }
 
 void ImageObj::drawRedCross(int crossSize){
-    if(image!=NULL)
+    if(image!=nullptr)
     {
         delete image;
         image = new QImage(*copyImage);
@@ -263,19 +267,19 @@ int ImageObj::checkColor(int value)
 }
 
 void ImageObj::setPointersToNull(){
-    if(histoImage!=NULL)
+    if(histoImage!=nullptr)
     {
         delete histoImage;
     }
-    if(cumuHistoImage!=NULL)
+    if(cumuHistoImage!=nullptr)
     {
         delete cumuHistoImage;
     }
-    if(histoVec!=NULL)
+    if(histoVec!=nullptr)
     {
         delete histoVec;
     }
-    if(cumuHistoVec!=NULL)
+    if(cumuHistoVec!=nullptr)
     {
         delete cumuHistoVec;
     }
