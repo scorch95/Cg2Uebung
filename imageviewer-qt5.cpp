@@ -350,6 +350,8 @@ void ImageViewer::updateImageDisplay()
     cumuHistoImage = imgObj->getCumuHistoImage();
 
     imageLabel->setPixmap(QPixmap::fromImage(*imgObj->getImage()));
+    imageLabel2->setPixmap(QPixmap::fromImage(*imgObj2->getImage()));
+
     histogram->setPixmap(QPixmap::fromImage(*histoImage));
     cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
     secHistogram->setPixmap(QPixmap::fromImage(*histoImage));
@@ -447,17 +449,21 @@ bool ImageViewer::loadFile(const QString &fileName)
 
 void ImageViewer::openSecImage()
 {
-    ImageObj* tmpImgObj = imgObj;
-    QLabel* tmpLabel = imageLabel;
-    
-    imgObj = imgObj2;
-    imageLabel= imageLabel2;
-    open();
-    
-    
-    
-    imgObj = tmpImgObj;
-    imageLabel = tmpLabel;
+    QStringList mimeTypeFilters;
+    foreach (const QByteArray &mimeTypeName, QImageReader::supportedMimeTypes())
+    mimeTypeFilters.append(mimeTypeName);
+    mimeTypeFilters.sort();
+    const QStringList picturesLocations = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
+    QFileDialog dialog(this, tr("Open File"),
+                       picturesLocations.isEmpty() ? QDir::currentPath() : picturesLocations.first());
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setMimeTypeFilters(mimeTypeFilters);
+    dialog.selectMimeTypeFilter("image/jpeg");
+
+
+    imgObj2 = new ImageObj(new QImage(dialog.selectedFiles().first()));
+    updateImageDisplay();
+
 }
 
 
