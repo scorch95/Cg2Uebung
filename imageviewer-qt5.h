@@ -104,7 +104,7 @@ class ImageViewer : public QMainWindow
     QLabel* secHistogram;
     QPushButton* linHistoAdjust;
     QPushButton* openSecButton;
-    
+    int currentImage;
 
  private slots:
 

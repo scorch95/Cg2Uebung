@@ -56,7 +56,7 @@ ImageViewer::ImageViewer()
     cumuHistoVec=nullptr;
     imgObj=nullptr;
     resize(1600, 600);
-
+    currentImage = 1;
     startLogging();
 
     generateMainGui();
@@ -346,12 +346,23 @@ void ImageViewer::resizeEvent(QResizeEvent * event)
 
 void ImageViewer::updateImageDisplay()
 {
-    histoImage = imgObj->getHistoImage();
-    cumuHistoImage = imgObj->getCumuHistoImage();
+    if(imgObj != nullptr)
+    {
+        histoImage = imgObj->getHistoImage();
+        imageLabel->setPixmap(QPixmap::fromImage(*imgObj->getImage()));
+        cumuHistoImage = imgObj->getCumuHistoImage();
+    }
+    
+    if(imgObj2 != nullptr)
+    {
+        imageLabel2->setPixmap(QPixmap::fromImage(*imgObj2->getImage()));
 
-    imageLabel->setPixmap(QPixmap::fromImage(*imgObj->getImage()));
-    imageLabel2->setPixmap(QPixmap::fromImage(*imgObj2->getImage()));
+    }
+    
+    
 
+    
+    
     histogram->setPixmap(QPixmap::fromImage(*histoImage));
     cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
     secHistogram->setPixmap(QPixmap::fromImage(*histoImage));
@@ -408,22 +419,48 @@ void ImageViewer::generateMainGui()
 
 bool ImageViewer::loadFile(const QString &fileName)
 {
-
-    if(imgObj != nullptr){
-        delete imgObj;
+    if (currentImage == 1)
+    {
+        if(imgObj != nullptr)
+        {
+            delete imgObj;
+        }
+        
+        imgObj = new ImageObj(new QImage(fileName));
+        //image = imgObj->getImage();
+        
+        
+        if (imgObj->getImage()->isNull())
+        {
+            QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+                                     tr("Cannot load %1.").arg(QDir::toNativeSeparators(fileName)));
+            setWindowFilePath(QString());
+            imageLabel->setPixmap(QPixmap());
+            imageLabel->adjustSize();
+            return false;
+        }
     }
-
-    imgObj = new ImageObj(new QImage(fileName));
-    //image = imgObj->getImage();
-
-
-    if (imgObj->getImage()->isNull()) {
-        QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
-                                 tr("Cannot load %1.").arg(QDir::toNativeSeparators(fileName)));
-        setWindowFilePath(QString());
-        imageLabel->setPixmap(QPixmap());
-        imageLabel->adjustSize();
-        return false;
+    
+    if (currentImage == 2)
+    {
+        if(imgObj2 != nullptr)
+        {
+            delete imgObj2;
+        }
+        
+        imgObj2 = new ImageObj(new QImage(fileName));
+        //image = imgObj->getImage();
+        
+        
+        if (imgObj2->getImage()->isNull())
+        {
+            QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+                                     tr("Cannot load %1.").arg(QDir::toNativeSeparators(fileName)));
+            setWindowFilePath(QString());
+            imageLabel->setPixmap(QPixmap());
+            imageLabel->adjustSize();
+            return false;
+        }
     }
 
     scaleFactor = 1.0;
@@ -460,10 +497,9 @@ void ImageViewer::openSecImage()
     dialog.setMimeTypeFilters(mimeTypeFilters);
     dialog.selectMimeTypeFilter("image/jpeg");
 
-
-    imgObj2 = new ImageObj(new QImage(dialog.selectedFiles().first()));
-    updateImageDisplay();
-
+    currentImage = 2;
+    while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().first())) {}
+    currentImage = 1;
 }
 
 
