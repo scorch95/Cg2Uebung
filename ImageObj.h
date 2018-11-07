@@ -27,7 +27,7 @@ public:
     double getVarianz() const;
     
     //QVector<int>& getHistoVec() const;
-    //QVector<int>& getCumuHistoVec() const;
+    QVector<int>* getCumuHistoVec();
     
     QImage* getImage() const;
     QImage* getHistoImage() const;
@@ -39,8 +39,11 @@ public:
     void convertToGreyScale();
     void adjustContrast(double slow,double shigh);
     void adjustHistoLin();
+    void applyRefHisto(const QVector<int>* refHistoVec);
     void changeContrast(int contrastFactor);
     void changeBrightness(int brightnessValue);
+    
+    void getGaussCumu(int sigma);
     
 private:
 

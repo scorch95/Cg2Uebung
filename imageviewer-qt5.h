@@ -101,9 +101,11 @@ class ImageViewer : public QMainWindow
     // Uebung3
     QPushButton* histoAdjustButton;
     QLabel* secCumuHistogram;
-    QLabel* secHistogram;
+    QLabel* secPicCumuHistogram;
     QPushButton* linHistoAdjust;
     QPushButton* openSecButton;
+    QPushButton* refHistoButton;
+    QPushButton* gaussButton;
     int currentImage;
 
  private slots:
@@ -118,6 +120,8 @@ class ImageViewer : public QMainWindow
     
     void adjustContrast();
     void adjustHistoLin();
+    void applyRefHisto();
+    void adjustGauss();
 
      void open();
      void print();

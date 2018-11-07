@@ -28,6 +28,8 @@ ImageObj::ImageObj(QImage* img){
     
     histoVec = nullptr;
     cumuHistoVec = nullptr;
+    
+    calcValues();
 }
 
 ImageObj::~ImageObj(){
@@ -39,7 +41,6 @@ ImageObj::~ImageObj(){
     {
         delete copyImage;
     }
-    setPointersToNull();
 }
 
 void ImageObj::calcValues(){
@@ -92,7 +93,7 @@ void ImageObj::calcValues(){
     }
 
     int sum =0;
-    cumuHistoVec = new QVector<int>(cumuHistoImage->width());
+    cumuHistoVec = new QVector<int>();
     for(int i=0; i<cumuHistoImage->width(); i++)
     {
         sum +=contrast[i];
@@ -105,6 +106,8 @@ void ImageObj::calcValues(){
     }
 
     histoVec = new QVector<int>(contrast);
+    
+    
 }
 
 void ImageObj::overrideImage(){
@@ -117,7 +120,7 @@ void ImageObj::overrideImage(){
         for (int j = 0; j<copyImage->height(); j++)
         {
             QColor color = QColor(copyImage->pixel(i, j));
-            QRgb light = checkColor((0.299*color.red() + 0.587*color.green() + 0.144*color.blue()+brightnessValue)*contrastFactor/(double)CONTRAST_MW);
+            QRgb light = checkColor(ceil((0.299*color.red() + 0.587*color.green() + 0.144*color.blue()+brightnessValue)*contrastFactor/(double)CONTRAST_MW));
 
             QColor c = QColor(light,light,light);
             image->setPixelColor(i, j, c);
@@ -202,17 +205,17 @@ void ImageObj::adjustContrast(double slow,double shigh){
         {
             QColor color = QColor(image->pixel(i, j));
             QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
-            if(light<=low)
+            if(light<=static_cast<uint>(low))
             {
                 light = 0;
             }
-            else if(light>=high)
+            else if(light>=static_cast<uint>(high))
             {
                 light = 255;
             }
             else
             {
-                light = (light-low)*255/(high-low);
+                light = ceil((light-low)*255/(double)(high-low));
             }
 
             QColor c = QColor(light,light,light);
@@ -238,6 +241,37 @@ void ImageObj::adjustHistoLin(){
         }
     }
 
+    calcValues();
+}
+
+void ImageObj::applyRefHisto(const QVector<int>* refHistoVec)
+{
+    int refSize = refHistoVec->at(refHistoVec->size()-1);
+    
+    std::cout << "histo "<<histoVec->size() << " cumu "<< cumuHistoVec->size() << "refHistoVec "<<refHistoVec->size()<<std::endl;
+    for(int i=0; i<width; i++)
+    {
+        for (int j=0; j<height; j++)
+        {
+            QColor color = QColor(copyImage->pixel(i, j));
+            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            int pixelNum = (1.0*cumuHistoVec->at(light)/image2DSize)*refSize;
+            //std::cout << cumuHistoVec->at(light) << " : "<< refSize << std::endl;
+            for(int k = 0; k<refHistoVec->size(); k++)
+            {
+                if(refHistoVec->at(k)>= pixelNum)
+                {
+                    light=k;
+                    //std::cout << " k  "<<k << " refHistoVec->at(k)   "<< refHistoVec->at(k) << " pixelNum   "<<pixelNum << " refHistoVec "<<refHistoVec->size()<<std::endl;
+                     break;
+                }
+            }
+            QColor c = QColor(light,light,light);
+            image->setPixelColor(i, j, c);
+            
+        }
+    }
+    
     calcValues();
 }
 
@@ -285,4 +319,25 @@ void ImageObj::setPointersToNull(){
     {
         delete cumuHistoVec;
     }
+}
+
+QVector<int>* ImageObj::getCumuHistoVec()
+{
+    return cumuHistoVec;
+}
+
+
+void ImageObj::getGaussCumu(int sigma)
+{
+    QVector<int>* returnVec = new QVector<int>();
+    
+    returnVec->insert(0, ((1.0/sigma*sqrt(2*M_PI))*exp(-0.5*((0-128)/sigma))*((0-128)/sigma)));
+    for (int i = 1; i<256 ; i++)
+    {
+        returnVec->insert(i, ((1.0/sigma*sqrt(2*M_PI))*exp(-0.5*((i-128)/sigma))*((i-128)/sigma))+ returnVec->at(i-1));
+    }
+    for(auto k : *returnVec)
+        std::cout<< k << std::endl;
+    applyRefHisto(returnVec);
+    delete returnVec;
 }

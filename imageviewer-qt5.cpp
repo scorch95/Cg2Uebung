@@ -270,20 +270,28 @@ void ImageViewer::generateControlPanels()
     connect(openSecButton, SIGNAL(clicked()), this, SLOT(openSecImage()));
     m_option_layout3->addWidget(openSecButton);
     
-    secHistogram = new QLabel();
-    secHistogram->setPixmap(QPixmap::fromImage(*histoImage));
+    secPicCumuHistogram = new QLabel();
     secCumuHistogram = new QLabel();
     secCumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
     
     QHBoxLayout* histoLayout = new QHBoxLayout();
-    histoLayout->addWidget(secHistogram);
+    histoLayout->addWidget(secPicCumuHistogram);
     histoLayout->addWidget(secCumuHistogram);
     
     m_option_layout3->addLayout(histoLayout);
     histoAdjustButton = new QPushButton("Linearer Histogramausgleich");
     connect(histoAdjustButton, SIGNAL(clicked()), this, SLOT(adjustHistoLin()));
     
+    refHistoButton = new QPushButton("Referenzausgleich");
+    connect(refHistoButton, SIGNAL(clicked()), this, SLOT(applyRefHisto()));
+    
+    
+    gaussButton = new QPushButton("Gauss ausgleich");
+    connect(gaussButton, SIGNAL(clicked()), this, SLOT(adjustGauss()));
+    
     m_option_layout3->addWidget(histoAdjustButton);
+    m_option_layout3->addWidget(refHistoButton);
+    m_option_layout3->addWidget(gaussButton);
     
     tabWidget->addTab(m_option_panel3, "Uebung3");
 
@@ -365,8 +373,12 @@ void ImageViewer::updateImageDisplay()
     
     histogram->setPixmap(QPixmap::fromImage(*histoImage));
     cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
-    secHistogram->setPixmap(QPixmap::fromImage(*histoImage));
     secCumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
+    
+    if(imgObj2 != nullptr)
+    {
+        secPicCumuHistogram->setPixmap(QPixmap::fromImage(*(imgObj2->getCumuHistoImage())));
+    }
 
 }
 
@@ -519,6 +531,15 @@ void ImageViewer::open()
     
     while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().first())) {}
 
+}
+
+void ImageViewer::applyRefHisto()
+{
+    if(imgObj != nullptr && imgObj2 != nullptr)
+    {
+        imgObj->applyRefHisto(imgObj2->getCumuHistoVec());
+        updateImageDisplay();
+    }
 }
 
 void ImageViewer::print()
@@ -689,3 +710,8 @@ QSlider* ImageViewer::getSlider(QLabel* valueLabel, int min, int max)
         return returnSlider;
 }
 
+void ImageViewer::adjustGauss()
+{
+    imgObj->getGaussCumu(50);
+    updateImageDisplay();
+}
