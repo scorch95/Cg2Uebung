@@ -330,14 +330,14 @@ QVector<int>* ImageObj::getCumuHistoVec()
 void ImageObj::getGaussCumu(int sigma)
 {
     QVector<int>* returnVec = new QVector<int>();
-    
-    returnVec->insert(0, ((1.0/sigma*sqrt(2*M_PI))*exp(-0.5*((0-128)/sigma))*((0-128)/sigma)));
+    int mu = 128;
+    returnVec->insert(0, 100.*((1.0/sigma*sqrt(2*M_PI))*exp(-0.5*((0-mu)/sigma)*((0-mu)/sigma))));
     for (int i = 1; i<256 ; i++)
     {
-        returnVec->insert(i, ((1.0/sigma*sqrt(2*M_PI))*exp(-0.5*((i-128)/sigma))*((i-128)/sigma))+ returnVec->at(i-1));
+        returnVec->insert(i, 100.*((1.0/sigma*sqrt(2*M_PI))*exp(-0.5*((i-mu)/sigma)*((i-mu)/sigma)))+ returnVec->at(i-1));
     }
-    for(auto k : *returnVec)
-        std::cout<< k << std::endl;
+    //for(auto k : *returnVec)
+        //std::cout<< k << std::endl;
     applyRefHisto(returnVec);
     delete returnVec;
 }

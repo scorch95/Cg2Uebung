@@ -272,6 +272,7 @@ void ImageViewer::generateControlPanels()
     
     secPicCumuHistogram = new QLabel();
     secCumuHistogram = new QLabel();
+    secPicCumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
     secCumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
     
     QHBoxLayout* histoLayout = new QHBoxLayout();
@@ -285,12 +286,15 @@ void ImageViewer::generateControlPanels()
     refHistoButton = new QPushButton("Referenzausgleich");
     connect(refHistoButton, SIGNAL(clicked()), this, SLOT(applyRefHisto()));
     
-    
+    sigma = new QSpinBox();
+    sigma->setRange(0, 150);
+    sigma->setValue(50);
     gaussButton = new QPushButton("Gauss ausgleich");
     connect(gaussButton, SIGNAL(clicked()), this, SLOT(adjustGauss()));
     
     m_option_layout3->addWidget(histoAdjustButton);
     m_option_layout3->addWidget(refHistoButton);
+    m_option_layout3->addWidget(sigma);
     m_option_layout3->addWidget(gaussButton);
     
     tabWidget->addTab(m_option_panel3, "Uebung3");
@@ -359,24 +363,15 @@ void ImageViewer::updateImageDisplay()
         histoImage = imgObj->getHistoImage();
         imageLabel->setPixmap(QPixmap::fromImage(*imgObj->getImage()));
         cumuHistoImage = imgObj->getCumuHistoImage();
+
+        histogram->setPixmap(QPixmap::fromImage(*histoImage));
+        cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
+        secCumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
     }
     
     if(imgObj2 != nullptr)
     {
         imageLabel2->setPixmap(QPixmap::fromImage(*imgObj2->getImage()));
-
-    }
-    
-    
-
-    
-    
-    histogram->setPixmap(QPixmap::fromImage(*histoImage));
-    cumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
-    secCumuHistogram->setPixmap(QPixmap::fromImage(*cumuHistoImage));
-    
-    if(imgObj2 != nullptr)
-    {
         secPicCumuHistogram->setPixmap(QPixmap::fromImage(*(imgObj2->getCumuHistoImage())));
     }
 
@@ -712,6 +707,6 @@ QSlider* ImageViewer::getSlider(QLabel* valueLabel, int min, int max)
 
 void ImageViewer::adjustGauss()
 {
-    imgObj->getGaussCumu(50);
+    imgObj->getGaussCumu(sigma->value());
     updateImageDisplay();
 }

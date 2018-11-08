@@ -106,6 +106,7 @@ class ImageViewer : public QMainWindow
     QPushButton* openSecButton;
     QPushButton* refHistoButton;
     QPushButton* gaussButton;
+    QSpinBox* sigma;
     int currentImage;
 
  private slots:
