@@ -341,3 +341,23 @@ void ImageObj::getGaussCumu(int sigma)
     applyRefHisto(returnVec);
     delete returnVec;
 }
+
+void ImageObj::yuvConvert()
+{
+    for(int i=0; i<width; i++)
+    {
+        for (int j=0; j<height; j++)
+        {
+            QColor color = QColor(copyImage->pixel(i, j));
+            QRgb y = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            y = cumuHistoVec->at(y)*255/(image2DSize);
+            int u = checkColor(0.49*(color.blue()-y));
+            int v = checkColor(0.87*(color.red()-y));
+            QColor c = QColor(y,u,v);
+            image->setPixelColor(i, j, c);
+
+        }
+    }
+
+    calcValues();
+}

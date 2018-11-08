@@ -292,10 +292,14 @@ void ImageViewer::generateControlPanels()
     gaussButton = new QPushButton("Gauss ausgleich");
     connect(gaussButton, SIGNAL(clicked()), this, SLOT(adjustGauss()));
     
+    yuvButton = new QPushButton("YUV Convert");
+    connect(yuvButton, SIGNAL(clicked()), this, SLOT(yuvConvert()));
+
     m_option_layout3->addWidget(histoAdjustButton);
     m_option_layout3->addWidget(refHistoButton);
     m_option_layout3->addWidget(sigma);
     m_option_layout3->addWidget(gaussButton);
+    m_option_layout3->addWidget(yuvButton);
     
     tabWidget->addTab(m_option_panel3, "Uebung3");
 
@@ -708,5 +712,11 @@ QSlider* ImageViewer::getSlider(QLabel* valueLabel, int min, int max)
 void ImageViewer::adjustGauss()
 {
     imgObj->getGaussCumu(sigma->value());
+    updateImageDisplay();
+}
+
+void ImageViewer:: yuvConvert()
+{
+    imgObj->yuvConvert();
     updateImageDisplay();
 }

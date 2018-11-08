@@ -44,6 +44,7 @@ public:
     void changeBrightness(int brightnessValue);
     
     void getGaussCumu(int sigma);
+    void yuvConvert();
     
 private:
 

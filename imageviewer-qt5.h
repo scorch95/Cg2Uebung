@@ -106,6 +106,7 @@ class ImageViewer : public QMainWindow
     QPushButton* openSecButton;
     QPushButton* refHistoButton;
     QPushButton* gaussButton;
+    QPushButton* yuvButton;
     QSpinBox* sigma;
     int currentImage;
 
@@ -123,6 +124,7 @@ class ImageViewer : public QMainWindow
     void adjustHistoLin();
     void applyRefHisto();
     void adjustGauss();
+    void yuvConvert();
 
      void open();
      void print();
