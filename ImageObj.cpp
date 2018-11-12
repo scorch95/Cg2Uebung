@@ -6,6 +6,9 @@
 //
 
 #include "ImageObj.h"
+
+#include "YUVColor.h"
+
 #include <iostream>
 #include <cmath>
 
@@ -119,11 +122,10 @@ void ImageObj::overrideImage(){
     {
         for (int j = 0; j<copyImage->height(); j++)
         {
-            QColor color = QColor(copyImage->pixel(i, j));
-            QRgb light = checkColor(ceil((0.299*color.red() + 0.587*color.green() + 0.144*color.blue()+brightnessValue)*contrastFactor/(double)CONTRAST_MW));
+            YUVColor color = QColor(copyImage->pixelColor(i, j));
+            color.setY((color.getY()+brightnessValue)*contrastFactor/(double)CONTRAST_MW);
 
-            QColor c = QColor(light,light,light);
-            image->setPixelColor(i, j, c);
+            image->setPixelColor(i, j, color);
 
         }
     }
