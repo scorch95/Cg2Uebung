@@ -30,9 +30,10 @@ void YUVColor::setY(int y)
     int v = getV();
     int u = getU();
     
-    setGreen(checkColor(y - 0.344*u - 0.714*v));
-    setRed(checkColor(y + 1.402*v));
-    setBlue(checkColor(y + 1.772*u));
+    setRed(checkColor(y + 1.149*v));
+    setBlue(checkColor(y + 2.04*u));
+    
+    setGreen(checkColor((y - 0.3*red() - 0.11*blue())*1.694));
 }
 /*
 void YUVColor::setU(int u)

@@ -57,8 +57,8 @@ void ImageObj::calcValues(){
         {
             //double light=qGray(image->pixel(i, j));
 
-            QColor color = QColor(image->pixel(i, j));
-            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            YUVColor color = YUVColor(image->pixelColor(i, j));
+            int light = color.getY();
             brightness += light;
             if(light >= 0 && light < 256)
                 contrast[light]++;
@@ -72,8 +72,8 @@ void ImageObj::calcValues(){
     {
         for (int j=0; j<height; j++)
         {
-            QColor color = QColor(image->pixel(i, j));
-            double light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            YUVColor color = YUVColor(image->pixelColor(i, j));
+            double light = static_cast<double>(color.getY());
             varianz += std::pow(light-brightness, 2);
         }
     }
@@ -122,7 +122,7 @@ void ImageObj::overrideImage(){
     {
         for (int j = 0; j<copyImage->height(); j++)
         {
-            YUVColor color = QColor(copyImage->pixelColor(i, j));
+            YUVColor color = YUVColor(copyImage->pixelColor(i, j));
             color.setY((color.getY()+brightnessValue)*contrastFactor/(double)CONTRAST_MW);
 
             image->setPixelColor(i, j, color);
@@ -205,13 +205,13 @@ void ImageObj::adjustContrast(double slow,double shigh){
     {
         for (int j=0; j<height; j++)
         {
-            QColor color = QColor(image->pixel(i, j));
-            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
-            if(light<=static_cast<uint>(low))
+            YUVColor color = YUVColor(copyImage->pixelColor(i, j));
+            int light = color.getY();
+            if(light<=low)
             {
                 light = 0;
             }
-            else if(light>=static_cast<uint>(high))
+            else if(light>=high)
             {
                 light = 255;
             }
@@ -220,8 +220,8 @@ void ImageObj::adjustContrast(double slow,double shigh){
                 light = ceil((light-low)*255/(double)(high-low));
             }
 
-            QColor c = QColor(light,light,light);
-            image->setPixelColor(i, j, c);
+            color.setY(light);
+            image->setPixelColor(i, j, color);
 
         }
     }
@@ -234,11 +234,11 @@ void ImageObj::adjustHistoLin(){
     {
         for (int j=0; j<height; j++)
         {
-            QColor color = QColor(copyImage->pixel(i, j));
-            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            YUVColor color = YUVColor(copyImage->pixelColor(i, j));
+            int light = color.getY();
             light = cumuHistoVec->at(light)*255/(image2DSize);
-            QColor c = QColor(light,light,light);
-            image->setPixelColor(i, j, c);
+            color.setY(light);
+            image->setPixelColor(i, j, color);
 
         }
     }
@@ -255,8 +255,8 @@ void ImageObj::applyRefHisto(const QVector<int>* refHistoVec)
     {
         for (int j=0; j<height; j++)
         {
-            QColor color = QColor(copyImage->pixel(i, j));
-            QRgb light = 0.299*color.red() + 0.587*color.green() + 0.144*color.blue();
+            YUVColor color = YUVColor(copyImage->pixelColor(i, j));
+            int light = color.getY();
             int pixelNum = (1.0*cumuHistoVec->at(light)/image2DSize)*refSize;
             //std::cout << cumuHistoVec->at(light) << " : "<< refSize << std::endl;
             for(int k = 0; k<refHistoVec->size(); k++)
@@ -268,8 +268,8 @@ void ImageObj::applyRefHisto(const QVector<int>* refHistoVec)
                      break;
                 }
             }
-            QColor c = QColor(light,light,light);
-            image->setPixelColor(i, j, c);
+            color.setY(light);
+            image->setPixelColor(i, j, color);
             
         }
     }
@@ -344,7 +344,7 @@ void ImageObj::getGaussCumu(int sigma)
     delete returnVec;
 }
 
-void ImageObj::yuvConvert()
+/*void ImageObj::yuvConvert()
 {
     for(int i=0; i<width; i++)
     {
@@ -362,4 +362,4 @@ void ImageObj::yuvConvert()
     }
 
     calcValues();
-}
+}*/

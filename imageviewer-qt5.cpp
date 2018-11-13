@@ -117,10 +117,10 @@ void ImageViewer::calcValues()
 
 }
 
-void ImageViewer::convertToGreyScale()
+/*void ImageViewer::convertToGreyScale()
 {
 
-}
+}*/
 
 void ImageViewer::changeContrast(int value)
 {
@@ -189,9 +189,12 @@ void ImageViewer::generateControlPanels()
     m_option_panel2->setLayout(m_option_layout2);
 
 
-    convertToGreyScaleBtn = new QPushButton(this);
-    convertToGreyScaleBtn->setText("convert to Greyscale");
-    QObject::connect(convertToGreyScaleBtn, SIGNAL (clicked()), this, SLOT (convertToGreyScale()));
+    //convertToGreyScaleBtn = new QPushButton(this);
+    //convertToGreyScaleBtn->setText("convert to Greyscale");
+    //QObject::connect(convertToGreyScaleBtn, SIGNAL (clicked()), this, SLOT (convertToGreyScale()));
+    
+    resetBtn = new QPushButton("Reset");
+    connect(resetBtn, SIGNAL(clicked()), this, SLOT(reset()));
 
     mittlereHelligkeit = new QLabel("Mittlere Helligkeit: ", this);
     varianz = new QLabel("Varianz: ", this);
@@ -212,7 +215,7 @@ void ImageViewer::generateControlPanels()
     m_option_layout2->addWidget(varianz);
     m_option_layout2->addWidget(histogram);
     m_option_layout2->addWidget(cumuHistogram);
-    m_option_layout2->addWidget(convertToGreyScaleBtn);
+    //m_option_layout2->addWidget(convertToGreyScaleBtn);
 
     QLabel* contrastLabel = new QLabel(this);
     contrast = getSlider(contrastLabel, 0, ImageObj::CONTRAST_MAX);
@@ -237,6 +240,7 @@ void ImageViewer::generateControlPanels()
     connect(brightness, SIGNAL(valueChanged(int)), this, SLOT(changeBrightness(int)));
 
     m_option_layout2->addLayout(sliderLayout);
+    m_option_layout2->addWidget(resetBtn);
     
     QHBoxLayout* adjustParamsLayout = new QHBoxLayout();
     
@@ -292,14 +296,14 @@ void ImageViewer::generateControlPanels()
     gaussButton = new QPushButton("Gauss ausgleich");
     connect(gaussButton, SIGNAL(clicked()), this, SLOT(adjustGauss()));
     
-    yuvButton = new QPushButton("YUV Convert");
-    connect(yuvButton, SIGNAL(clicked()), this, SLOT(yuvConvert()));
+    //yuvButton = new QPushButton("YUV Convert");
+    //connect(yuvButton, SIGNAL(clicked()), this, SLOT(yuvConvert()));
 
     m_option_layout3->addWidget(histoAdjustButton);
     m_option_layout3->addWidget(refHistoButton);
     m_option_layout3->addWidget(sigma);
     m_option_layout3->addWidget(gaussButton);
-    m_option_layout3->addWidget(yuvButton);
+    //m_option_layout3->addWidget(yuvButton);
     
     tabWidget->addTab(m_option_panel3, "Uebung3");
 
@@ -715,8 +719,17 @@ void ImageViewer::adjustGauss()
     updateImageDisplay();
 }
 
-void ImageViewer:: yuvConvert()
+/*void ImageViewer:: yuvConvert()
 {
     imgObj->yuvConvert();
+    updateImageDisplay();
+}*/
+
+
+void ImageViewer::reset()
+{
+    contrast->setValue(ImageObj::CONTRAST_MW);
+    brightness->setValue(0);
+    
     updateImageDisplay();
 }

@@ -85,7 +85,8 @@ class ImageViewer : public QMainWindow
     // Uebung 2
     QLabel* varianz;
     QLabel* mittlereHelligkeit;
-    QPushButton* convertToGreyScaleBtn;
+    //QPushButton* convertToGreyScaleBtn;
+    QPushButton* resetBtn;
     QLabel* histogram;
     QLabel* cumuHistogram;
     QImage* histoImage;
@@ -106,14 +107,15 @@ class ImageViewer : public QMainWindow
     QPushButton* openSecButton;
     QPushButton* refHistoButton;
     QPushButton* gaussButton;
-    QPushButton* yuvButton;
+    //QPushButton* yuvButton;
     QSpinBox* sigma;
     int currentImage;
 
  private slots:
 
      void drawRedCross();
-     void convertToGreyScale();
+     //void convertToGreyScale();
+    void reset();
     
     void openSecImage();
     
@@ -124,7 +126,7 @@ class ImageViewer : public QMainWindow
     void adjustHistoLin();
     void applyRefHisto();
     void adjustGauss();
-    void yuvConvert();
+    //void yuvConvert();
 
      void open();
      void print();
