@@ -354,6 +354,38 @@ void ImageObj::resetToCopyImage()
     }
 }
 
+void ImageObj::applyFilter(int** filter, int weight){
+    double s = 1.0/weight;
+
+    int filterWidth = filter[0].length/2;
+    int filterHeight= filter.length/2;
+
+    for(int u= filterWidth; u < width-filterWidth; u++){
+         for(int v= filterHeight; v < height-filterHeight; v++){
+            int sum = 0;
+            YUVColor color;
+            for(int i = -filterWidth; i <= filterWidth; i++){
+                for(int j = -filterHeight; j <= filterHeight; j++){
+                    color = YUVColor(copyImage->pixelColor(i, j));
+                    int c = filter[i+filterWidth][j+filterHeight];
+                    sum += c * color.getY();
+                }
+            }
+            color.setY((int) Math.round(s* sum));
+            image->setPixelColor(u, v, color);
+         }
+    }
+
+    QColor borderColor = QColor(Qt::GlobalColor::gray);
+    for(int i=0; i < filterWidth; i++){
+         for(int j= filterHeight; j < filterHeight; j++){
+            image->setPixelColor(i, j, color);
+         }
+    }
+
+    calcValues();
+}
+
 /*void ImageObj::yuvConvert()
 {
     for(int i=0; i<width; i++)
