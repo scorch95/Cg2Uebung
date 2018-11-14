@@ -344,6 +344,7 @@ void ImageViewer::generateControlPanels()
     
     applyFilterMatrix = new QPushButton("Apply Filtermatrix");
     optionLayoutTab4->addWidget(applyFilterMatrix);
+    connect(applyFilterMatrix, SIGNAL(clicked()), this, SLOT(applyMatrixFilter()));
     
     
     m_option_layout4->addWidget(optionWidgetTab4);
@@ -366,6 +367,7 @@ void ImageViewer::generateControlPanels()
     histoAdjustButton->setEnabled(false);
     gaussButton->setEnabled(false);
     sigma->setEnabled(false);
+    applyFilterMatrix->setEnabled(false);
 
 
     // Hinweis: Es bietet sich an pro Aufgabe jeweils einen solchen Tab zu erstellen
@@ -609,6 +611,7 @@ void ImageViewer::open()
     histoAdjustButton->setEnabled(true);
     gaussButton->setEnabled(true);
     sigma->setEnabled(true);
+    applyFilterMatrix->setEnabled(true);
 
 }
 
@@ -821,4 +824,28 @@ void ImageViewer::rowsChanged(int rows)
 void ImageViewer::columnsChanged(int columns)
 {
     matrixWidget->setColumnCount(columns);
+}
+
+void ImageViewer::applyMatrixFilter()
+{
+    QVector<QVector<int>> filter;
+    QVector<int> filterX;
+    for(int i=0; i < matrixWidget->rowCount(); i++){
+        for(int j= 0; j < matrixWidget->columnCount(); j++){
+            QTableWidgetItem* value = matrixWidget->item(i,j);
+            
+            if(value == nullptr)
+            {
+                value = new QTableWidgetItem();
+                value->setText("0");
+                matrixWidget->setItem(i, j, value);
+            }
+            filterX.insert(j, value->text().toInt());
+        }
+        filter.insert(i, filterX);
+    }
+    
+    imgObj->applyFilter(filter);
+    
+    updateImageDisplay();
 }

@@ -47,7 +47,7 @@ public:
     
     void getGaussCumu(int sigma);
 
-    void applyFilter(int** filter, int weight);
+    void applyFilter(const QVector<QVector<int>>& filter);
     //void yuvConvert();
     
 private:

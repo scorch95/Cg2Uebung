@@ -13,6 +13,7 @@
 class YUVColor : public QColor
 {
 public:
+    YUVColor();
     YUVColor(QColor color);
     
     int getY() const;

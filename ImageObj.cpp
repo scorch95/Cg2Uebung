@@ -354,33 +354,51 @@ void ImageObj::resetToCopyImage()
     }
 }
 
-void ImageObj::applyFilter(int** filter, int weight){
-    double s = 1.0/weight;
+void ImageObj::applyFilter(const QVector<QVector<int>>& filter){
 
-    int filterWidth = filter[0].length/2;
-    int filterHeight= filter.length/2;
+    int filterWidth = filter[0].size();
+    int filterHeight = filter.size();
+    
+    int filterWidthHalf = filterWidth/2;
+    int filterHeightHalf= filterHeight/2;
 
-    for(int u= filterWidth; u < width-filterWidth; u++){
-         for(int v= filterHeight; v < height-filterHeight; v++){
+    std::cout << "width: " << filterWidthHalf << " height: " << filterHeightHalf << std::endl;
+    for(int u= filterWidthHalf; u < width-filterWidthHalf; u++){
+         for(int v= filterHeightHalf; v < height-filterHeightHalf; v++){
             int sum = 0;
-            YUVColor color;
-            for(int i = -filterWidth; i <= filterWidth; i++){
-                for(int j = -filterHeight; j <= filterHeight; j++){
-                    color = YUVColor(copyImage->pixelColor(i, j));
-                    int c = filter[i+filterWidth][j+filterHeight];
+            YUVColor color = YUVColor();
+            for(int i = -filterWidthHalf; i <= filterWidthHalf; i++){
+                for(int j = -filterHeightHalf; j <= filterHeightHalf; j++){
+                    color = YUVColor(copyImage->pixelColor(u+i, v+j));
+                    int c = filter.at(i+filterWidthHalf).at(j+filterHeightHalf);
                     sum += c * color.getY();
                 }
             }
-            color.setY((int) Math.round(s* sum));
+             //std::cout << "sum: " <<  (int) std::round(s* sum) << std::endl;
+
+             color.setY((int) std::round((1.0 * sum)/ (filterWidth*filterHeight)));
             image->setPixelColor(u, v, color);
          }
     }
 
-    QColor borderColor = QColor(Qt::GlobalColor::gray);
-    for(int i=0; i < filterWidth; i++){
-         for(int j= filterHeight; j < filterHeight; j++){
-            image->setPixelColor(i, j, color);
+    QColor borderColor = QColor(Qt::GlobalColor::black);
+    for(int i=0; i < width; i++){
+         for(int j= 0; j < filterHeightHalf; j++){
+            image->setPixelColor(i, j, borderColor);
          }
+        for(int j= height-filterHeightHalf; j < height; j++){
+            image->setPixelColor(i, j, borderColor);
+        }
+    }
+    for(int j= filterHeightHalf; j < height-filterHeightHalf; j++){
+        for(int i = 0 ; i < filterWidthHalf ; i++)
+        {
+            image->setPixelColor(i, j, borderColor);
+        }
+        for(int i = width-filterWidthHalf ; i < width ; i++)
+        {
+            image->setPixelColor(i, j, borderColor);
+        }
     }
 
     calcValues();

@@ -150,6 +150,8 @@ class ImageViewer : public QMainWindow
     
     void rowsChanged(int rows);
     void columnsChanged(int columns);
+    
+    void applyMatrixFilter();
 
 
 

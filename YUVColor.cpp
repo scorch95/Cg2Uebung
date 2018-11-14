@@ -12,6 +12,11 @@ YUVColor::YUVColor(QColor color) :QColor(color)
     
 }
 
+YUVColor::YUVColor() : QColor()
+{
+    
+}
+
 int YUVColor::getY() const
 {
     return calcY(red(), green(), blue());
