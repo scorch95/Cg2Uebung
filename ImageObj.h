@@ -34,6 +34,8 @@ public:
     QImage* getCumuHistoImage() const;
     void calcValues();
     QImage* getBlankHistoimage();
+    
+    void resetToCopyImage();
 
     void drawRedCross(int crossSize);
     void convertToGreyScale();

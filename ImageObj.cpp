@@ -344,6 +344,16 @@ void ImageObj::getGaussCumu(int sigma)
     delete returnVec;
 }
 
+void ImageObj::resetToCopyImage()
+{
+    if(image != nullptr)
+    {
+        delete image;
+        image = new QImage(*copyImage);
+        calcValues();
+    }
+}
+
 /*void ImageObj::yuvConvert()
 {
     for(int i=0; i<width; i++)

@@ -192,9 +192,6 @@ void ImageViewer::generateControlPanels()
     //convertToGreyScaleBtn = new QPushButton(this);
     //convertToGreyScaleBtn->setText("convert to Greyscale");
     //QObject::connect(convertToGreyScaleBtn, SIGNAL (clicked()), this, SLOT (convertToGreyScale()));
-    
-    resetBtn = new QPushButton("Reset");
-    connect(resetBtn, SIGNAL(clicked()), this, SLOT(reset()));
 
     mittlereHelligkeit = new QLabel("Mittlere Helligkeit: ", this);
     varianz = new QLabel("Varianz: ", this);
@@ -240,7 +237,7 @@ void ImageViewer::generateControlPanels()
     connect(brightness, SIGNAL(valueChanged(int)), this, SLOT(changeBrightness(int)));
 
     m_option_layout2->addLayout(sliderLayout);
-    m_option_layout2->addWidget(resetBtn);
+    //m_option_layout2->addWidget(resetBtn);
     
     QHBoxLayout* adjustParamsLayout = new QHBoxLayout();
     
@@ -269,6 +266,7 @@ void ImageViewer::generateControlPanels()
     
     imageLabel2 = new QLabel();
     m_option_layout3->addWidget(imageLabel2);
+    imageLabel2->setMaximumWidth(m_option_panel3->width());
     
     openSecButton = new QPushButton("Open");
     connect(openSecButton, SIGNAL(clicked()), this, SLOT(openSecImage()));
@@ -289,6 +287,7 @@ void ImageViewer::generateControlPanels()
     
     refHistoButton = new QPushButton("Referenzausgleich");
     connect(refHistoButton, SIGNAL(clicked()), this, SLOT(applyRefHisto()));
+    refHistoButton->setEnabled(false);
     
     sigma = new QSpinBox();
     sigma->setRange(0, 150);
@@ -308,6 +307,20 @@ void ImageViewer::generateControlPanels()
     tabWidget->addTab(m_option_panel3, "Uebung3");
 
     tabWidget->show();
+
+    
+    //vor dem laden eines Bilds sollte nichts ausgewählt werden können
+    crossSlider->setEnabled(false);
+    applyCross->setEnabled(false);
+    resetBtn->setEnabled(false);
+    contrast->setEnabled(false);
+    brightness->setEnabled(false);
+    adjustContrastButton->setEnabled(false);
+    slowSpinBox->setEnabled(false);
+    shighSpinBox->setEnabled(false);
+    histoAdjustButton->setEnabled(false);
+    gaussButton->setEnabled(false);
+    sigma->setEnabled(false);
 
 
     // Hinweis: Es bietet sich an pro Aufgabe jeweils einen solchen Tab zu erstellen
@@ -414,12 +427,16 @@ void ImageViewer::generateMainGui()
 
         setCentralWidget(scrollArea);
 
+    resetBtn = new QPushButton("Reset");
+    connect(resetBtn, SIGNAL(clicked()), this, SLOT(reset()));
+    
     /* HBox layout */
     QGridLayout* gLayout = new QGridLayout(centralwidget);
     gLayout->setObjectName(QStringLiteral("hboxLayout"));
     gLayout->addWidget(new QLabel(this),1,1);
     gLayout->setVerticalSpacing(50);
     gLayout->addWidget(tabWidget,2,1);
+    gLayout->addWidget(resetBtn,3,1);
     gLayout->addWidget(scrollArea,2,2);
 
     logBrowser= new QTextEdit(this);
@@ -427,8 +444,8 @@ void ImageViewer::generateMainGui()
     logBrowser->setMaximumHeight(200);
     logBrowser->setMinimumWidth(width());
     logBrowser->setMaximumWidth(width());
-    gLayout->addWidget(logBrowser,3,1,1,2);
-    gLayout->setVerticalSpacing(50);
+    gLayout->addWidget(logBrowser,4,1,1,2);
+    gLayout->setVerticalSpacing(15);
 }
 
 
@@ -515,6 +532,8 @@ void ImageViewer::openSecImage()
     currentImage = 2;
     while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().first())) {}
     currentImage = 1;
+    
+    refHistoButton->setEnabled(true);
 }
 
 
@@ -533,6 +552,18 @@ void ImageViewer::open()
     
     
     while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().first())) {}
+    
+    crossSlider->setEnabled(true);
+    applyCross->setEnabled(true);
+    resetBtn->setEnabled(true);
+    contrast->setEnabled(true);
+    brightness->setEnabled(true);
+    adjustContrastButton->setEnabled(true);
+    slowSpinBox->setEnabled(true);
+    shighSpinBox->setEnabled(true);
+    histoAdjustButton->setEnabled(true);
+    gaussButton->setEnabled(true);
+    sigma->setEnabled(true);
 
 }
 
@@ -730,6 +761,8 @@ void ImageViewer::reset()
 {
     contrast->setValue(ImageObj::CONTRAST_MW);
     brightness->setValue(0);
+    
+    imgObj->resetToCopyImage();
     
     updateImageDisplay();
 }
