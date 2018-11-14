@@ -381,23 +381,35 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter){
          }
     }
 
-    QColor borderColor = QColor(Qt::GlobalColor::black);
+    //QColor borderColor = QColor(Qt::GlobalColor::black);
+    QColor constColor;
+    QColor mirroredColor;
     for(int i=0; i < width; i++){
-         for(int j= 0; j < filterHeightHalf; j++){
-            image->setPixelColor(i, j, borderColor);
+         for(int j= 0; j < filterHeightHalf; j++)
+         {
+            constColor= image->pixel(i,filterHeightHalf);
+            mirroredColor= image->pixel(i,2*filterHeightHalf-j);
+            image->setPixelColor(i, j, mirroredColor);
          }
-        for(int j= height-filterHeightHalf; j < height; j++){
-            image->setPixelColor(i, j, borderColor);
+        for(int j= height-filterHeightHalf; j < height; j++)
+        {
+            constColor= image->pixel(i,height-filterHeightHalf-1);
+            mirroredColor= image->pixel(i,height-(2*filterHeightHalf)-1-j);
+            image->setPixelColor(i, j, mirroredColor);
         }
     }
     for(int j= filterHeightHalf; j < height-filterHeightHalf; j++){
         for(int i = 0 ; i < filterWidthHalf ; i++)
         {
-            image->setPixelColor(i, j, borderColor);
+            constColor= image->pixel(filterHeightHalf,j);
+            mirroredColor= image->pixel(2*filterHeightHalf-i,j);
+            image->setPixelColor(i, j, mirroredColor);
         }
         for(int i = width-filterWidthHalf ; i < width ; i++)
         {
-            image->setPixelColor(i, j, borderColor);
+            constColor= image->pixel(width-filterWidthHalf-1,j);
+            mirroredColor= image->pixel(width-(2*filterWidthHalf)-1-i,j);
+            image->setPixelColor(i, j, mirroredColor);
         }
     }
 
