@@ -305,6 +305,51 @@ void ImageViewer::generateControlPanels()
     //m_option_layout3->addWidget(yuvButton);
     
     tabWidget->addTab(m_option_panel3, "Uebung3");
+    
+    m_option_panel4 = new QWidget(this);
+    m_option_layout4 = new QHBoxLayout();
+    m_option_panel4->setLayout(m_option_layout4);
+    
+    matrixWidget = new QTableWidget(3,3);
+    matrixWidget->horizontalHeader()->setDefaultSectionSize(28);
+    //matrixWidget->horizontalHeader()->setDefaultSectionSize(10);
+    m_option_layout4->addWidget(matrixWidget);
+    
+    QWidget* optionWidgetTab4 = new QWidget(m_option_panel4);
+    QVBoxLayout* optionLayoutTab4 = new QVBoxLayout();
+    optionWidgetTab4->setLayout(optionLayoutTab4);
+    
+    QLabel* rowsLabel = new QLabel("Rows");
+    matrixRows = new QSpinBox();
+    matrixRows->setMinimum(3);
+    matrixRows->setMaximum(11);
+    matrixRows->setSingleStep(2);
+    matrixRows->setValue(3);
+    connect(matrixRows, SIGNAL(valueChanged(int)), this, SLOT(rowsChanged(int)));
+    
+    QLabel* columnsLabel = new QLabel("Columns");
+    matrixColumns = new QSpinBox();
+    matrixColumns->setMinimum(3);
+    matrixColumns->setMaximum(11);
+    matrixColumns->setSingleStep(2);
+    matrixColumns->setValue(3);
+    connect(matrixColumns, SIGNAL(valueChanged(int)), this, SLOT(columnsChanged(int)));
+    
+    QFormLayout* rowClmLayout = new QFormLayout();
+    rowClmLayout->addRow(rowsLabel, matrixRows);
+    rowClmLayout->addRow(columnsLabel, matrixColumns);
+    
+    optionLayoutTab4->addLayout(rowClmLayout);
+    
+    
+    applyFilterMatrix = new QPushButton("Apply Filtermatrix");
+    optionLayoutTab4->addWidget(applyFilterMatrix);
+    
+    
+    m_option_layout4->addWidget(optionWidgetTab4);
+    
+    tabWidget->addTab(m_option_panel4, "Uebung4");
+    
 
     tabWidget->show();
 
@@ -765,4 +810,15 @@ void ImageViewer::reset()
     imgObj->resetToCopyImage();
     
     updateImageDisplay();
+}
+
+
+void ImageViewer::rowsChanged(int rows)
+{
+    matrixWidget->setRowCount(rows);
+}
+
+void ImageViewer::columnsChanged(int columns)
+{
+    matrixWidget->setColumnCount(columns);
 }

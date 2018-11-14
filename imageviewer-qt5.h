@@ -52,11 +52,13 @@ class QScrollArea;
 class QScrollBar;
 class QTextEdit;
 class QVBoxLayout;
+class QHBoxLayout;
 class QTabWidget;
 class QPushButton;
 class QSpinBox;
 class QSlider;
 class QDoubleSpinBox;
+class QTableWidget;
 
 class ImageViewer : public QMainWindow
 {
@@ -73,6 +75,9 @@ class ImageViewer : public QMainWindow
     
     QWidget*    m_option_panel3;
     QVBoxLayout*    m_option_layout3;
+    
+    QWidget* m_option_panel4;
+    QHBoxLayout* m_option_layout4;
 
     
 
@@ -110,6 +115,12 @@ class ImageViewer : public QMainWindow
     //QPushButton* yuvButton;
     QSpinBox* sigma;
     int currentImage;
+    
+    //Uebung4
+    QTableWidget* matrixWidget;
+    QPushButton* applyFilterMatrix;
+    QSpinBox* matrixRows;
+    QSpinBox* matrixColumns;
 
  private slots:
 
@@ -136,6 +147,9 @@ class ImageViewer : public QMainWindow
      void fitToWindow();
      void about();
 
+    
+    void rowsChanged(int rows);
+    void columnsChanged(int columns);
 
 
 
