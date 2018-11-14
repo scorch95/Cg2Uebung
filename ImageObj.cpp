@@ -375,6 +375,14 @@ void ImageObj::applyFilter(int** filter, int weight){
             image->setPixelColor(u, v, color);
          }
     }
+
+    QColor borderColor = QColor(Qt::GlobalColor::gray);
+    for(int i=0; i < filterWidth; i++){
+         for(int j= filterHeight; j < filterHeight; j++){
+            image->setPixelColor(i, j, color);
+         }
+    }
+
     calcValues();
 }
 
