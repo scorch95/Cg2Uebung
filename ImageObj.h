@@ -46,6 +46,8 @@ public:
     void changeBrightness(int brightnessValue);
     
     void getGaussCumu(int sigma);
+
+    void applyFilter(int** filter, int weight);
     //void yuvConvert();
     
 private:
