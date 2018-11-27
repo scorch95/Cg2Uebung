@@ -322,7 +322,7 @@ void ImageViewer::generateControlPanels()
     QLabel* rowsLabel = new QLabel("Rows");
     matrixRows = new QSpinBox();
     matrixRows->setMinimum(3);
-    matrixRows->setMaximum(11);
+    matrixRows->setMaximum(15);
     matrixRows->setSingleStep(2);
     matrixRows->setValue(3);
     connect(matrixRows, SIGNAL(valueChanged(int)), this, SLOT(rowsChanged(int)));
@@ -330,16 +330,41 @@ void ImageViewer::generateControlPanels()
     QLabel* columnsLabel = new QLabel("Columns");
     matrixColumns = new QSpinBox();
     matrixColumns->setMinimum(3);
-    matrixColumns->setMaximum(11);
+    matrixColumns->setMaximum(15);
     matrixColumns->setSingleStep(2);
     matrixColumns->setValue(3);
     connect(matrixColumns, SIGNAL(valueChanged(int)), this, SLOT(columnsChanged(int)));
+    
+    noEdges = new QRadioButton("No Edges");
+    noEdges->setChecked(true);
+    zeroPaddingEdges = new QRadioButton("Zero Padding");
+    mirrorEdges = new QRadioButton("Mirror Edges");
+    constEdges = new QRadioButton("Constant Edges");
+    
+    QVBoxLayout* gbLayout = new QVBoxLayout();
+    edgesGB = new QButtonGroup(gbLayout);
+    edgesGB->setExclusive(true);
+    
+    edgesGB->addButton(noEdges,0);
+    edgesGB->addButton(zeroPaddingEdges,1);
+    edgesGB->addButton(mirrorEdges,3);
+    edgesGB->addButton(constEdges,2);
+    
+    gbLayout->addWidget(noEdges);
+    gbLayout->addWidget(zeroPaddingEdges);
+    gbLayout->addWidget(mirrorEdges);
+    gbLayout->addWidget(constEdges);
+    
+    QGroupBox* gB = new QGroupBox();
+    gB->setTitle("Edges");
+    gB->setLayout(gbLayout);
     
     QFormLayout* rowClmLayout = new QFormLayout();
     rowClmLayout->addRow(rowsLabel, matrixRows);
     rowClmLayout->addRow(columnsLabel, matrixColumns);
     
     optionLayoutTab4->addLayout(rowClmLayout);
+    optionLayoutTab4->addWidget(gB);
     
     
     applyFilterMatrix = new QPushButton("Apply Filtermatrix");
@@ -350,6 +375,27 @@ void ImageViewer::generateControlPanels()
     m_option_layout4->addWidget(optionWidgetTab4);
     
     tabWidget->addTab(m_option_panel4, "Uebung4");
+    
+    m_option_panel5 = new QWidget(this);
+    m_option_layout5 = new QVBoxLayout();
+    m_option_panel5->setLayout(m_option_layout5);
+    
+    cannySigma = new QDoubleSpinBox();
+    cannyThi = new QDoubleSpinBox();
+    cannyTlow = new QDoubleSpinBox();
+    
+    QGroupBox* cannyParamGB = new QGroupBox();
+    cannyParamGB->setTitle("Canny Parameter");
+    QFormLayout* cannyLayout = new QFormLayout();
+    cannyParamGB->setLayout(cannyLayout);
+    
+    cannyLayout->addRow(new QLabel("Sigma:"), cannySigma);
+    cannyLayout->addRow(new QLabel("t_hi:"), cannyThi);
+    cannyLayout->addRow(new QLabel("t_low:"), cannyTlow);
+    
+    m_option_layout5->addWidget(cannyParamGB);
+    
+    tabWidget->addTab(m_option_panel5, "Uebung5");
     
 
     tabWidget->show();
@@ -845,7 +891,7 @@ void ImageViewer::applyMatrixFilter()
         filter.insert(i, filterX);
     }
     
-    imgObj->applyFilter(filter);
+    imgObj->applyFilter(filter, edgesGB->checkedId());
     
     updateImageDisplay();
 }

@@ -76,3 +76,9 @@ int YUVColor::checkColor(int value) const
         value = 0;
     return value;
 }
+
+void YUVColor::convertToGrey()
+{
+    int y = getY();
+    this->setRgb(y, y, y);
+}

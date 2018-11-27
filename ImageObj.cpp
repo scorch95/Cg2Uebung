@@ -354,13 +354,16 @@ void ImageObj::resetToCopyImage()
     }
 }
 
-void ImageObj::applyFilter(const QVector<QVector<int>>& filter){
+void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
 
     int filterWidth = filter[0].size();
     int filterHeight = filter.size();
     
     int filterWidthHalf = filterWidth/2;
     int filterHeightHalf= filterHeight/2;
+    
+    int div = filterWidth*filterHeight;
+    div=2;
 
     std::cout << "width: " << filterWidthHalf << " height: " << filterHeightHalf << std::endl;
     for(int u= filterWidthHalf; u < width-filterWidthHalf; u++){
@@ -376,40 +379,79 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter){
             }
              //std::cout << "sum: " <<  (int) std::round(s* sum) << std::endl;
 
-             color.setY((int) std::round((1.0 * sum)/ (filterWidth*filterHeight)));
+             int  y = (int) std::round((1.0 * sum)/ (div));
+             if(y == 0)
+             {
+                 y = 0;
+             }
+             else
+             {
+                 y = 255;
+             }
+             color.setY(y);
+             color.convertToGrey();
             image->setPixelColor(u, v, color);
          }
     }
 
-    //QColor borderColor = QColor(Qt::GlobalColor::black);
-    QColor constColor;
-    QColor mirroredColor;
-    for(int i=0; i < width; i++){
-         for(int j= 0; j < filterHeightHalf; j++)
-         {
-            constColor= image->pixel(i,filterHeightHalf);
-            mirroredColor= image->pixel(i,2*filterHeightHalf-j);
-            image->setPixelColor(i, j, mirroredColor);
-         }
-        for(int j= height-filterHeightHalf; j < height; j++)
+    if(edge > 0)
+    {
+        QColor borderColor;
+        if(edge == 1)
         {
-            constColor= image->pixel(i,height-filterHeightHalf-1);
-            mirroredColor= image->pixel(i,height-(2*filterHeightHalf)-1-j);
-            image->setPixelColor(i, j, mirroredColor);
+            borderColor = QColor(Qt::GlobalColor::black);
         }
-    }
-    for(int j= filterHeightHalf; j < height-filterHeightHalf; j++){
-        for(int i = 0 ; i < filterWidthHalf ; i++)
-        {
-            constColor= image->pixel(filterHeightHalf,j);
-            mirroredColor= image->pixel(2*filterHeightHalf-i,j);
-            image->setPixelColor(i, j, mirroredColor);
+        for(int i=0; i < width; i++){
+            if(edge == 2)
+            {
+                borderColor= image->pixel(i,filterHeightHalf);
+            }
+             for(int j= 0; j < filterHeightHalf; j++)
+             {
+                if(edge == 3)
+                {
+                    borderColor= image->pixel(i,2*filterHeightHalf-j);
+                }
+                image->setPixelColor(i, j, borderColor);
+             }
+            if(edge == 2)
+            {
+                borderColor= image->pixel(i,height-filterHeightHalf-1);
+            }
+            for(int j= height-filterHeightHalf; j < height; j++)
+            {
+                if(edge == 3)
+                {
+                    borderColor= image->pixel(i,height-(2*filterHeightHalf)-1-j);
+                }
+                image->setPixelColor(i, j, borderColor);
+            }
         }
-        for(int i = width-filterWidthHalf ; i < width ; i++)
-        {
-            constColor= image->pixel(width-filterWidthHalf-1,j);
-            mirroredColor= image->pixel(width-(2*filterWidthHalf)-1-i,j);
-            image->setPixelColor(i, j, mirroredColor);
+        for(int j= filterHeightHalf; j < height-filterHeightHalf; j++){
+            if(edge == 2)
+            {
+                borderColor= image->pixel(filterHeightHalf,j);
+            }
+            for(int i = 0 ; i < filterWidthHalf ; i++)
+            {
+                if(edge == 3)
+                {
+                    borderColor= image->pixel(2*filterHeightHalf-i,j);
+                }
+                image->setPixelColor(i, j, borderColor);
+            }
+            if(edge == 2)
+            {
+                borderColor= image->pixel(width-filterWidthHalf-1,j);
+            }
+            for(int i = width-filterWidthHalf ; i < width ; i++)
+            {
+                if(edge == 3)
+                {
+                    borderColor= image->pixel(width-(2*filterWidthHalf)-1-    i,j);
+                }
+                image->setPixelColor(i, j, borderColor);
+            }
         }
     }
 

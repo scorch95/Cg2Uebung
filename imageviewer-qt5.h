@@ -59,6 +59,8 @@ class QSpinBox;
 class QSlider;
 class QDoubleSpinBox;
 class QTableWidget;
+class QRadioButton;
+class QButtonGroup;
 
 class ImageViewer : public QMainWindow
 {
@@ -78,6 +80,9 @@ class ImageViewer : public QMainWindow
     
     QWidget* m_option_panel4;
     QHBoxLayout* m_option_layout4;
+    
+    QWidget* m_option_panel5;
+    QVBoxLayout* m_option_layout5;
 
     
 
@@ -121,6 +126,17 @@ class ImageViewer : public QMainWindow
     QPushButton* applyFilterMatrix;
     QSpinBox* matrixRows;
     QSpinBox* matrixColumns;
+    QRadioButton* noEdges;
+    QRadioButton* zeroPaddingEdges;
+    QRadioButton* mirrorEdges;
+    QRadioButton* constEdges;
+    QButtonGroup* edgesGB;
+    
+    //Uebung5
+    QDoubleSpinBox* cannySigma;
+    QDoubleSpinBox* cannyThi;
+    QDoubleSpinBox* cannyTlow;
+
 
  private slots:
 

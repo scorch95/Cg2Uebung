@@ -24,6 +24,8 @@ public:
     //void setU(int u);
     //void setV(int v);
     
+    void convertToGrey();
+    
 private:
     double calcY(double r, double g, double b) const;
     double calcU(double y, double b) const;
