@@ -358,10 +358,10 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
 
     int filterWidth = filter[0].size();
     int filterHeight = filter.size();
-    
+
     int filterWidthHalf = filterWidth/2;
     int filterHeightHalf= filterHeight/2;
-    
+
     int div = filterWidth*filterHeight;
     div=2;
 
@@ -380,16 +380,8 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
              //std::cout << "sum: " <<  (int) std::round(s* sum) << std::endl;
 
              int  y = (int) std::round((1.0 * sum)/ (div));
-             if(y == 0)
-             {
-                 y = 0;
-             }
-             else
-             {
-                 y = 255;
-             }
              color.setY(y);
-             color.convertToGrey();
+             //color.convertToGrey();
             image->setPixelColor(u, v, color);
          }
     }
@@ -456,6 +448,47 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
     }
 
     calcValues();
+}
+
+QImage* ImageObj::applyFilterOnImage(const QVector<QVector<int>>& filter, int div)
+{
+    QImage* tempImage = new QImage(width, height, QImage::Format_RGB32);
+
+    int filterWidth = filter[0].size();
+    int filterHeight = filter.size();
+
+    int filterWidthHalf = filterWidth/2;
+    int filterHeightHalf= filterHeight/2;
+
+    std::cout << "width: " << filterWidthHalf << " height: " << filterHeightHalf << std::endl;
+    for(int u= filterWidthHalf; u < width-filterWidthHalf; u++){
+         for(int v= filterHeightHalf; v < height-filterHeightHalf; v++){
+            int sum = 0;
+            YUVColor color = YUVColor();
+            for(int i = -filterWidthHalf; i <= filterWidthHalf; i++){
+                for(int j = -filterHeightHalf; j <= filterHeightHalf; j++){
+                    color = YUVColor(copyImage->pixelColor(u+i, v+j));
+                    int c = filter.at(i+filterWidthHalf).at(j+filterHeightHalf);
+                    sum += c * color.getY();
+                }
+            }
+             //std::cout << "sum: " <<  (int) std::round(s* sum) << std::endl;
+
+             int  y = (int) std::round((1.0 * sum)/ (div));
+             if(y == 0)
+             {
+                 y = 0;
+             }
+             else
+             {
+                 y = 255;
+             }
+             color.setY(y);
+             color.convertToGrey();
+            tempImage->setPixelColor(u, v, color);
+         }
+    }
+    return tempImage;
 }
 
 /*void ImageObj::yuvConvert()

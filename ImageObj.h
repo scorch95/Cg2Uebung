@@ -73,6 +73,7 @@ private:
     void overrideImage();
     int checkColor(int value);
     void setPointersToNull();
+    QImage* applyFilterOnImage(const QVector<QVector<int>>& filter, int div);
     
 };
 #endif /* ImageObj_h */

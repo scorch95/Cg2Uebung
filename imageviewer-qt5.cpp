@@ -878,13 +878,13 @@ void ImageViewer::applyMatrixFilter()
     QVector<int> filterX;
     for(int i=0; i < matrixWidget->rowCount(); i++){
         for(int j= 0; j < matrixWidget->columnCount(); j++){
-            QTableWidgetItem* value = matrixWidget->item(i,j);
+            QTableWidgetItem* value = matrixWidget->item(j,i);
             
             if(value == nullptr)
             {
                 value = new QTableWidgetItem();
                 value->setText("0");
-                matrixWidget->setItem(i, j, value);
+                matrixWidget->setItem(j,i, value);
             }
             filterX.insert(j, value->text().toInt());
         }
