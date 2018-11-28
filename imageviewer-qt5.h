@@ -133,10 +133,10 @@ class ImageViewer : public QMainWindow
     QButtonGroup* edgesGB;
     
     //Uebung5
-    QDoubleSpinBox* cannySigma;
-    QDoubleSpinBox* cannyThi;
-    QDoubleSpinBox* cannyTlow;
-
+    QSpinBox* cannySigma;
+    QSpinBox* cannyThi;
+    QSpinBox* cannyTlow;
+    QPushButton* cannyEdge;
 
  private slots:
 
@@ -168,6 +168,7 @@ class ImageViewer : public QMainWindow
     void columnsChanged(int columns);
     
     void applyMatrixFilter();
+    void applyCannyEdge();
 
 
 

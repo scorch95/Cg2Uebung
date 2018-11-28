@@ -1,34 +1,38 @@
 #include "Gradient.h"
+#include <iostream>
 
 Gradient::Gradient()
 {
-
+    initGradientMagnitude();
+    getEmptyVector();
 }
 
-Gradient::Gradient(QImage* iX, QImage* iY)
+Gradient::Gradient(QVector<QVector<int>>& iX, QVector<QVector<int>>& iY, int h, int w) : gHeight(h), gWidth(w)
 {
     this->iX= iX;
+    //std::cout << iX.size()<< std::endl;
+    //std::cout << iX[0].size() << std::endl;
     this->iY= iY;
+    initGradientMagnitude();
+    getEmptyVector();
 }
 
 Gradient::~Gradient()
 {
-    delete iX;
-    delete iY;
 }
 
 int Gradient::getValue(int i, int j)
 {
-    int dx = iX->getPixel(i,j);
-    int dy = iY->getPixel(i,j);
+    int dx = iX[i][j];
+    int dy = iY[i][j];
     return std::sqrt(dx*dx+dy*dy);
 }
 
 int Gradient::getOrientationSector(int i, int j)
 {
     int s;
-    int x = iX->getPixel(i,j);
-    int y = iY->getPixel(i,j);
+    int x = iX[i][j];
+    int y = iY[i][j];
     //QVector2D* vec = new QVector2D(COS_PI8*x-SIN_PI8*y, SIN_PI8*x+COS_PI8*y);
 
     int dx = COS_PI8*x-SIN_PI8*y;
@@ -50,4 +54,133 @@ int Gradient::getOrientationSector(int i, int j)
         s = 3;
 
     return s;
+}
+
+
+void Gradient::initGradientMagnitude()
+{
+    for (int i = 0; i<gWidth; i++) {
+        QVector<int> emagX;
+        for(int j= 0; j < gHeight; j++){
+            emagX.push_back(getValue(iX[i][j], iY[i][j]));
+        }
+        emag.push_back(emagX);
+    }
+}
+
+void Gradient::getEmptyVector()
+{
+    for (int i = 0; i<gWidth; i++) {
+        QVector<int> emagX;
+        for(int j= 0; j < gHeight; j++){
+            emagX.push_back(0);
+        }
+        ebin.push_back(emagX);
+        enms.push_back(emagX);
+
+    }
+}
+
+bool Gradient::isLocalMax(int i, int j, int s, int tlo) const
+{
+    int mCurrent = emag[i][j];
+    if(mCurrent <  tlo)
+    {
+        return false;
+    }
+    else
+    {
+        int mLeft = 0;
+        int mRight = 0;
+        if (s == 0)
+        {
+            mLeft = emag[i-1][j];
+            mRight = emag[i+1][j];
+        }
+        else if (s == 1)
+        {
+            mLeft = emag[i-1][j-1];
+            mRight = emag[i+1][j+1];
+        }
+        else if (s == 2)
+        {
+            mLeft = emag[i][j-1];
+            mRight = emag[i][j+1];
+        }
+        else if (s == 3)
+        {
+            mLeft = emag[i-1][j+1];
+            mRight = emag[i+1][j-1];
+        }
+        return (mLeft<=mCurrent)&&(mCurrent>=mRight);
+    }
+}
+
+QImage* Gradient::getBinImage(int tlo, int thi)
+{
+    for(int i = 1; i<gWidth-1; i++)
+    {
+        for (int j = 1;  j<gHeight-1; j++)
+        {
+            int s = getOrientationSector(i, j);
+            if(isLocalMax(i, j, s, tlo))
+            {
+                enms[i][j] = emag[i][j];
+            }
+        }
+    }
+    
+    for(int i = 1; i<gWidth-1; i++)
+    {
+        for (int j = 1;  j<gHeight-1; j++)
+        {
+            int maxValue = enms[i][j];
+            int currentBin = ebin[i][j];
+            if(maxValue>=thi && currentBin == 0)
+            {
+                traceAndTreshHold(i,j,tlo);
+            }
+        }
+    }
+    
+    QImage* tempImage = new QImage(gWidth,gHeight, QImage::Format_RGB32);
+    for(int i = 1; i<gWidth-1; i++)
+    {
+        for (int j = 1;  j<gHeight-1; j++)
+        {
+            tempImage->setPixelColor(i, j, QColor(ebin[i][j], ebin[i][j], ebin[i][j]));
+        }
+    }
+               
+    return tempImage;
+
+}
+
+
+void Gradient::traceAndTreshHold(int i, int j,int tlo)
+{
+    ebin[i][j] = 255;
+    for(int u = std::max(i-1, 0); i <= std::min(i+1, gWidth); u++)
+    {
+        for(int v = std::max(j-1, 0); v <=std::min(j+1, gHeight);v++)
+        {
+            if(enms[u][v] >= tlo && ebin[u][v] == 0)
+            {
+                traceAndTreshHold(u, v, tlo);
+            }
+        }
+    }
+}
+
+
+void Gradient::printQVector(const QVector<QVector<int>>& vector) const
+{
+    for(int i = 0; i<vector.size(); i++)
+    {
+        for (int j = 0;  j<vector[0].size(); j++)
+        {
+            std::cout << vector[i][j] << "\t";
+        }
+        std::cout << std::endl;
+    }
 }

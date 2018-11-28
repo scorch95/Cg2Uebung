@@ -45,10 +45,12 @@ public:
     void changeContrast(int contrastFactor);
     void changeBrightness(int brightnessValue);
     
-    void getGaussCumu(int sigma);
+    void applyGaussCumu(int sigma);
 
     void applyFilter(const QVector<QVector<int>>& filter, int edge);
     //void yuvConvert();
+    
+    void cannyEdgeDectector(int sigma, int thi, int tlow);
     
 private:
 
@@ -74,6 +76,7 @@ private:
     int checkColor(int value);
     void setPointersToNull();
     QImage* applyFilterOnImage(const QVector<QVector<int>>& filter, int div);
+    QVector<QVector<int>> initGradientVector(char type) const;
     
 };
 #endif /* ImageObj_h */

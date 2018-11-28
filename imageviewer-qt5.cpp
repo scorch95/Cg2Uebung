@@ -380,9 +380,16 @@ void ImageViewer::generateControlPanels()
     m_option_layout5 = new QVBoxLayout();
     m_option_panel5->setLayout(m_option_layout5);
     
-    cannySigma = new QDoubleSpinBox();
-    cannyThi = new QDoubleSpinBox();
-    cannyTlow = new QDoubleSpinBox();
+    cannySigma = new QSpinBox();
+    cannySigma->setRange(0, 150);
+    cannySigma->setValue(50);
+    cannyThi = new QSpinBox();
+    cannyThi->setRange(0, 255);
+    cannyTlow = new QSpinBox();
+    cannyTlow->setRange(0, 255);
+    
+    cannyEdge = new QPushButton("Canny Edge Detection");
+    connect(cannyEdge, SIGNAL(clicked()), this, SLOT(applyCannyEdge()));
     
     QGroupBox* cannyParamGB = new QGroupBox();
     cannyParamGB->setTitle("Canny Parameter");
@@ -394,6 +401,7 @@ void ImageViewer::generateControlPanels()
     cannyLayout->addRow(new QLabel("t_low:"), cannyTlow);
     
     m_option_layout5->addWidget(cannyParamGB);
+    m_option_layout5->addWidget(cannyEdge);
     
     tabWidget->addTab(m_option_panel5, "Uebung5");
     
@@ -840,7 +848,7 @@ QSlider* ImageViewer::getSlider(QLabel* valueLabel, int min, int max)
 
 void ImageViewer::adjustGauss()
 {
-    imgObj->getGaussCumu(sigma->value());
+    imgObj->applyGaussCumu(sigma->value());
     updateImageDisplay();
 }
 
@@ -893,5 +901,12 @@ void ImageViewer::applyMatrixFilter()
     
     imgObj->applyFilter(filter, edgesGB->checkedId());
     
+    updateImageDisplay();
+}
+
+
+void ImageViewer::applyCannyEdge()
+{
+    imgObj->cannyEdgeDectector(cannySigma->value(), cannyThi->value(), cannyTlow->value());
     updateImageDisplay();
 }

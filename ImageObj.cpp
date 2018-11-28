@@ -8,6 +8,7 @@
 #include "ImageObj.h"
 
 #include "YUVColor.h"
+#include "Gradient.h"
 
 #include <iostream>
 #include <cmath>
@@ -329,7 +330,7 @@ QVector<int>* ImageObj::getCumuHistoVec()
 }
 
 
-void ImageObj::getGaussCumu(int sigma)
+void ImageObj::applyGaussCumu(int sigma)
 {
     QVector<int>* returnVec = new QVector<int>();
     int mu = 128;
@@ -362,9 +363,8 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
     int filterWidthHalf = filterWidth/2;
     int filterHeightHalf= filterHeight/2;
 
-    int div = filterWidth*filterHeight;
-    div=2;
-
+    double div = filterWidth*filterHeight;
+    div = 2.0;
     std::cout << "width: " << filterWidthHalf << " height: " << filterHeightHalf << std::endl;
     for(int u= filterWidthHalf; u < width-filterWidthHalf; u++){
          for(int v= filterHeightHalf; v < height-filterHeightHalf; v++){
@@ -379,7 +379,7 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
             }
              //std::cout << "sum: " <<  (int) std::round(s* sum) << std::endl;
 
-             int  y = (int) std::round((1.0 * sum)/ (div));
+             int  y = (int) std::round((1.0 * sum)/ (1.0*div));
              color.setY(y);
              //color.convertToGrey();
             image->setPixelColor(u, v, color);
@@ -474,23 +474,94 @@ QImage* ImageObj::applyFilterOnImage(const QVector<QVector<int>>& filter, int di
             }
              //std::cout << "sum: " <<  (int) std::round(s* sum) << std::endl;
 
-             int  y = (int) std::round((1.0 * sum)/ (div));
-             if(y == 0)
+             int  y = (int) std::round((1.0 * sum)/ (1.0*div));
+             /*if(y == 0)
              {
                  y = 0;
              }
              else
              {
                  y = 255;
-             }
+             }*/
              color.setY(y);
-             color.convertToGrey();
+             //color.convertToGrey();
             tempImage->setPixelColor(u, v, color);
          }
     }
     return tempImage;
 }
 
+void ImageObj::cannyEdgeDectector(int sigma, int thi, int tlow)
+{
+    applyGaussCumu(sigma);
+    QImage* gradientX = applyFilterOnImage(initGradientVector('x'), 2);
+    QImage* gradientY = applyFilterOnImage(initGradientVector('y'), 2);
+    
+    QVector<QVector<int>> iX;
+    QVector<QVector<int>> iY;
+    
+    for (int i = 0; i<gradientX->width(); i++)
+    {
+        QVector<int> subX;
+        QVector<int> subY;
+        
+        for(int j= 0; j < gradientX->height(); j++){
+            YUVColor xColor = YUVColor(gradientX->pixelColor(i, j));
+            YUVColor yColor = YUVColor(gradientY->pixelColor(i, j));
+            /*if(xColor.getY()>0)
+            {
+                std::cout << xColor.getY() << std::endl;
+            }*/
+            subX.push_back(xColor.getY());
+            subY.push_back(yColor.getY());
+
+        }
+        iX.push_back(subX);
+        iY.push_back(subY);
+
+    }
+    
+    Gradient* gradient = new Gradient(iX, iY, width, height);
+    
+    
+    
+    if(image != nullptr)
+    {
+        delete image;
+    }
+    //image = gradient->getBinImage(tlow, thi);
+    image = new QImage(*gradientX);
+    calcValues();
+    
+    delete gradient;
+    delete gradientX;
+    delete gradientY;
+    
+}
+
+
+QVector<QVector<int>> ImageObj::initGradientVector(char type) const
+{
+    QVector<QVector<int>> filter;
+    for(int i=0; i < 3; i++){
+        QVector<int> filterX;
+        for(int j= 0; j < 3; j++){
+            filterX.push_back(0);
+        }
+        filter.push_back(filterX);
+    }
+    if(type == 'x')
+    {
+        filter[1][0] = -1;
+        filter[1][2] = 1;
+    }
+    if(type == 'y')
+    {
+        filter[0][1] = -1;
+        filter[2][1] = 1;
+    }
+    return filter;
+}
 /*void ImageObj::yuvConvert()
 {
     for(int i=0; i<width; i++)
