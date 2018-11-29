@@ -529,8 +529,7 @@ void ImageObj::cannyEdgeDectector(int sigma, int thi, int tlow)
     {
         delete image;
     }
-    //image = gradient->getBinImage(tlow, thi);
-    image = new QImage(*gradientX);
+    image = gradient->getBinImage(tlow, thi);
     calcValues();
     
     delete gradient;

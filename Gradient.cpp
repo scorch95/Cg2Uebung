@@ -10,8 +10,6 @@ Gradient::Gradient()
 Gradient::Gradient(QVector<QVector<int>>& iX, QVector<QVector<int>>& iY, int h, int w) : gHeight(h), gWidth(w)
 {
     this->iX= iX;
-    //std::cout << iX.size()<< std::endl;
-    //std::cout << iX[0].size() << std::endl;
     this->iY= iY;
     initGradientMagnitude();
     getEmptyVector();
@@ -23,6 +21,7 @@ Gradient::~Gradient()
 
 int Gradient::getValue(int i, int j)
 {
+    //std::cout << "i: " << i << " j: " << j << std::endl;
     int dx = iX[i][j];
     int dy = iY[i][j];
     return std::sqrt(dx*dx+dy*dy);
@@ -62,7 +61,7 @@ void Gradient::initGradientMagnitude()
     for (int i = 0; i<gWidth; i++) {
         QVector<int> emagX;
         for(int j= 0; j < gHeight; j++){
-            emagX.push_back(getValue(iX[i][j], iY[i][j]));
+            emagX.push_back(getValue(i, j));
         }
         emag.push_back(emagX);
     }
@@ -130,18 +129,19 @@ QImage* Gradient::getBinImage(int tlo, int thi)
         }
     }
     
+    //printQVector(enms);
+    
     for(int i = 1; i<gWidth-1; i++)
     {
         for (int j = 1;  j<gHeight-1; j++)
         {
-            int maxValue = enms[i][j];
-            int currentBin = ebin[i][j];
-            if(maxValue>=thi && currentBin == 0)
+            if(enms[i][j]>=thi && ebin[i][j] == 0)
             {
                 traceAndTreshHold(i,j,tlo);
             }
         }
     }
+    //printQVector(ebin);
     
     QImage* tempImage = new QImage(gWidth,gHeight, QImage::Format_RGB32);
     for(int i = 1; i<gWidth-1; i++)
@@ -160,7 +160,7 @@ QImage* Gradient::getBinImage(int tlo, int thi)
 void Gradient::traceAndTreshHold(int i, int j,int tlo)
 {
     ebin[i][j] = 255;
-    for(int u = std::max(i-1, 0); i <= std::min(i+1, gWidth); u++)
+    for(int u = std::max(i-1, 0); u <= std::min(i+1, gWidth); u++)
     {
         for(int v = std::max(j-1, 0); v <=std::min(j+1, gHeight);v++)
         {

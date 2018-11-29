@@ -422,7 +422,7 @@ void ImageViewer::generateControlPanels()
     gaussButton->setEnabled(false);
     sigma->setEnabled(false);
     applyFilterMatrix->setEnabled(false);
-
+    cannyEdge->setEnabled(false);
 
     // Hinweis: Es bietet sich an pro Aufgabe jeweils einen solchen Tab zu erstellen
 
@@ -666,6 +666,7 @@ void ImageViewer::open()
     gaussButton->setEnabled(true);
     sigma->setEnabled(true);
     applyFilterMatrix->setEnabled(true);
+    cannyEdge->setEnabled(true);
 
 }
 
