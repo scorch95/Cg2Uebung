@@ -47,10 +47,11 @@ public:
     
     void applyGaussCumu(int sigma);
 
-    void applyFilter(const QVector<QVector<int>>& filter, int edge);
+    void applyFilter(const QVector<QVector<int>>& filter, int edge, int div);
     //void yuvConvert();
     
     void cannyEdgeDectector(int sigma, int thi, int tlow);
+    void applyUSM(int sigma, double a);
     
 private:
 

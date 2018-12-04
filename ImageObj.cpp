@@ -355,7 +355,7 @@ void ImageObj::resetToCopyImage()
     }
 }
 
-void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
+void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge, int div){
 
     int filterWidth = filter[0].size();
     int filterHeight = filter.size();
@@ -363,8 +363,7 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
     int filterWidthHalf = filterWidth/2;
     int filterHeightHalf= filterHeight/2;
 
-    double div = filterWidth*filterHeight;
-    div = 2.0;
+    //double div = filterWidth*filterHeight;
     std::cout << "width: " << filterWidthHalf << " height: " << filterHeightHalf << std::endl;
     for(int u= filterWidthHalf; u < width-filterWidthHalf; u++){
          for(int v= filterHeightHalf; v < height-filterHeightHalf; v++){
@@ -377,7 +376,7 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
                     sum += c * color.getY();
                 }
             }
-             //std::cout << "sum: " <<  (int) std::round(s* sum) << std::endl;
+             //std::cout << "div: "<<div << std::endl;
 
              int  y = (int) std::round((1.0 * sum)/ (1.0*div));
              color.setY(y);
@@ -560,6 +559,44 @@ QVector<QVector<int>> ImageObj::initGradientVector(char type) const
         filter[2][1] = 1;
     }
     return filter;
+}
+
+void ImageObj::applyUSM(int sigma, double a)
+{
+    applyGaussCumu(sigma);
+    
+    QImage mask = QImage(*copyImage);
+    
+    for(int i = 0; i < width; i++)
+    {
+        for(int j = 0; j < height; j++)
+        {
+            YUVColor color = YUVColor(copyImage->pixelColor(i, j));
+            int yOrig = color.getY();
+            color = YUVColor(image->pixelColor(i, j));
+            int ySmooth = color.getY();
+            color.setY(yOrig-ySmooth);
+            
+            mask.setPixelColor(i, j, color);
+            
+        }
+    }
+    
+    for(int i = 0; i < width; i++)
+    {
+        for(int j = 0; j < height; j++)
+        {
+            YUVColor color = YUVColor(mask.pixelColor(i, j));
+            int yMask = color.getY();
+            color = YUVColor(copyImage->pixelColor(i, j));
+            int yOrig = color.getY();
+            
+            color.setY(yOrig+a*yMask);
+            
+            image->setPixelColor(i, j, color);
+        }
+    }
+    calcValues();
 }
 /*void ImageObj::yuvConvert()
 {

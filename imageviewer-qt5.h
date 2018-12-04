@@ -137,6 +137,10 @@ class ImageViewer : public QMainWindow
     QSpinBox* cannyThi;
     QSpinBox* cannyTlow;
     QPushButton* cannyEdge;
+    
+    QDoubleSpinBox* schaerfungsGrad;
+    QSpinBox* usmSigma;
+    QPushButton* usmBtn;
 
  private slots:
 
@@ -169,7 +173,7 @@ class ImageViewer : public QMainWindow
     
     void applyMatrixFilter();
     void applyCannyEdge();
-
+    void applyUSM();
 
 
 
