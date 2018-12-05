@@ -78,6 +78,7 @@ private:
     void setPointersToNull();
     QImage* applyFilterOnImage(const QVector<QVector<int>>& filter, int div);
     QVector<QVector<int>> initGradientVector(char type) const;
+    void applyGaussFilter();
     
 };
 #endif /* ImageObj_h */

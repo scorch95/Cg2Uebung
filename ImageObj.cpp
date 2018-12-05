@@ -492,7 +492,7 @@ QImage* ImageObj::applyFilterOnImage(const QVector<QVector<int>>& filter, int di
 
 void ImageObj::cannyEdgeDectector(int sigma, int thi, int tlow)
 {
-    applyGaussCumu(sigma);
+    applyGaussFilter();
     QImage* gradientX = applyFilterOnImage(initGradientVector('x'), 2);
     QImage* gradientY = applyFilterOnImage(initGradientVector('y'), 2);
     
@@ -563,7 +563,8 @@ QVector<QVector<int>> ImageObj::initGradientVector(char type) const
 
 void ImageObj::applyUSM(int sigma, double a)
 {
-    applyGaussCumu(sigma);
+    //applyGaussCumu(sigma);
+    applyGaussFilter();
     
     QImage mask = QImage(*copyImage);
     
@@ -596,6 +597,17 @@ void ImageObj::applyUSM(int sigma, double a)
             image->setPixelColor(i, j, color);
         }
     }
+    calcValues();
+}
+
+void ImageObj::applyGaussFilter()
+{
+    const QVector<int> l1 = { 1, 2, 1 };
+    const QVector<int> l2 = { 2, 4, 2 };
+    
+    const QVector<QVector<int>> gaussVec = {l1,l2,l1};
+    
+    applyFilter(gaussVec, 2, 16);
     calcValues();
 }
 /*void ImageObj::yuvConvert()

@@ -383,6 +383,7 @@ void ImageViewer::generateControlPanels()
     cannySigma = new QSpinBox();
     cannySigma->setRange(0, 150);
     cannySigma->setValue(50);
+    cannySigma->setEnabled(false);
     cannyThi = new QSpinBox();
     cannyThi->setRange(0, 255);
     cannyTlow = new QSpinBox();
@@ -411,6 +412,7 @@ void ImageViewer::generateControlPanels()
     usmSigma = new QSpinBox();
     usmSigma->setRange(0, 150);
     usmSigma->setValue(50);
+    usmSigma->setEnabled(false);
     usmLayout->addRow(new QLabel("Sigma"), usmSigma);
     
     schaerfungsGrad = new QDoubleSpinBox();
@@ -922,7 +924,7 @@ void ImageViewer::applyMatrixFilter()
             }
             if(value->text() != "0")
             {
-                div++;
+                div+=value->text().toInt();
             }
             filterX.insert(j, value->text().toInt());
         }
