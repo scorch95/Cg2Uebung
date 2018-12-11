@@ -520,7 +520,7 @@ void ImageObj::cannyEdgeDectector(int sigma, int thi, int tlow)
 
     }
     
-    Gradient* gradient = new Gradient(iX, iY, width, height);
+    Gradient* gradient = new Gradient(iX, iY, height, width);
     
     
     
@@ -609,6 +609,74 @@ void ImageObj::applyGaussFilter()
     
     applyFilter(gaussVec, 2, 16);
     calcValues();
+}
+
+void ImageObj::applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow)
+{
+    cannyEdgeDectector(50, 20, 15);
+    int xCntr = width/2;
+    int yCntr = height/2;
+    
+    int nAng = aSteps;
+    double dAng = M_PI/nAng;
+    int nRad = rSteps;
+    
+    double rMax = std::sqrt(xCntr*xCntr + yCntr*yCntr);
+    int dRad = (2*rMax)/nRad;
+    QVector<QVector<int>> akkuVec;
+    for(int i = 0; i<nAng; i++)
+    {
+        QVector<int> tempVec;
+        for(int j = 0; j< nRad; j++)
+        {
+            tempVec.push_back(0);
+        }
+        akkuVec.push_back(tempVec);
+    }
+    
+    for(int v = 0; v < height; v++)
+    {
+        for (int u = 0; u < width; u++)
+        {
+            YUVColor col = YUVColor(image->pixelColor(u,v));
+            if(col.getY() > 0)
+            {
+                double x = u-xCntr;
+                double y = v-yCntr;
+                for(int a = 0; a<nAng; a++)
+                {
+                    double theta= dAng*static_cast<double>(a);
+                    int r = std::round((x*std::cos(theta) + y*std::sin(theta))/static_cast<double>(dRad) + nRad/2);
+                    //std::cout << r <<std::endl;
+                    if(r >= 0 && r<nRad)
+                    {
+                        akkuVec[a][r]++;
+                    }
+                }
+            }
+        }
+    }
+    
+    QImage akkuImg = QImage(nAng, nRad, QImage::Format_RGB32);
+    for(int i = 0; i< nAng; i++)
+    {
+        for(int j = 0; j < nRad; j++)
+        {
+            int color = akkuVec[i][j];
+            if(color > 255)
+                color = 255;
+            YUVColor qColor = YUVColor(QColor(color,color,color));
+            qColor.convertToGrey();
+            akkuImg.setPixelColor(i, j, qColor);
+        }
+    }
+    
+    if(image != nullptr)
+    {
+        delete image;
+    }
+    image = new QImage(akkuImg);
+    
 }
 /*void ImageObj::yuvConvert()
 {

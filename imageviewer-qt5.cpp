@@ -386,8 +386,10 @@ void ImageViewer::generateControlPanels()
     cannySigma->setEnabled(false);
     cannyThi = new QSpinBox();
     cannyThi->setRange(0, 255);
+    cannyThi->setValue(20);
     cannyTlow = new QSpinBox();
     cannyTlow->setRange(0, 255);
+    cannyTlow->setValue(15);
     
     cannyEdge = new QPushButton("Canny Edge Detection");
     connect(cannyEdge, SIGNAL(clicked()), this, SLOT(applyCannyEdge()));
@@ -429,6 +431,28 @@ void ImageViewer::generateControlPanels()
     
     tabWidget->addTab(m_option_panel5, "Uebung5");
     
+    m_option_panel6 = new QWidget(this);
+    m_option_layout6 = new QVBoxLayout();
+    m_option_panel6->setLayout(m_option_layout6);
+    
+    angleSB = new QSpinBox();
+    angleSB->setRange(1, 1000);
+    angleSB->setValue(400);
+    radiusSB = new QSpinBox();
+    radiusSB->setRange(1, 1000);
+    radiusSB->setValue(400);
+    
+    QFormLayout* optionFormLayout6 = new QFormLayout();
+    optionFormLayout6->addRow(new QLabel("Angle:"), angleSB);
+    optionFormLayout6->addRow(new QLabel("Radius:"), radiusSB);
+    m_option_layout6->addLayout(optionFormLayout6);
+    m_option_layout6->addWidget(new QLabel("Algorithm uses parameters t_hi & t_low from Canny edge detection!"));
+    
+    houghTransBtn = new QPushButton("Hough Transformation");
+    m_option_layout6->addWidget(houghTransBtn);
+    connect(houghTransBtn, SIGNAL(clicked()), this, SLOT(applyHoughTrans()));
+    
+    tabWidget->addTab(m_option_panel6, "Uebung6");
 
     tabWidget->show();
 
@@ -448,6 +472,7 @@ void ImageViewer::generateControlPanels()
     applyFilterMatrix->setEnabled(false);
     cannyEdge->setEnabled(false);
     usmBtn->setEnabled(false);
+    houghTransBtn->setEnabled(false);
 
     // Hinweis: Es bietet sich an pro Aufgabe jeweils einen solchen Tab zu erstellen
 
@@ -693,6 +718,7 @@ void ImageViewer::open()
     applyFilterMatrix->setEnabled(true);
     cannyEdge->setEnabled(true);
     usmBtn->setEnabled(true);
+    houghTransBtn->setEnabled(true);
 
 }
 
@@ -946,5 +972,12 @@ void ImageViewer::applyCannyEdge()
 void ImageViewer::applyUSM()
 {
     imgObj->applyUSM(usmSigma->value(), schaerfungsGrad->value());
+    updateImageDisplay();
+}
+
+
+void ImageViewer::applyHoughTrans()
+{
+    imgObj->applyHoughTrans(angleSB->value(),radiusSB->value(), cannyThi->value(), cannyTlow->value());
     updateImageDisplay();
 }

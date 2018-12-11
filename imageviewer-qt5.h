@@ -83,6 +83,9 @@ class ImageViewer : public QMainWindow
     
     QWidget* m_option_panel5;
     QVBoxLayout* m_option_layout5;
+    
+    QWidget* m_option_panel6;
+    QVBoxLayout* m_option_layout6;
 
     
 
@@ -141,6 +144,11 @@ class ImageViewer : public QMainWindow
     QDoubleSpinBox* schaerfungsGrad;
     QSpinBox* usmSigma;
     QPushButton* usmBtn;
+    
+    //Uebung6
+    QPushButton* houghTransBtn;
+    QSpinBox* angleSB;
+    QSpinBox* radiusSB;
 
  private slots:
 
@@ -174,6 +182,7 @@ class ImageViewer : public QMainWindow
     void applyMatrixFilter();
     void applyCannyEdge();
     void applyUSM();
+    void applyHoughTrans();
 
 
 

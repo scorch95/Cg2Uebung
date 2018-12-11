@@ -52,6 +52,7 @@ public:
     
     void cannyEdgeDectector(int sigma, int thi, int tlow);
     void applyUSM(int sigma, double a);
+    void applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow);
     
 private:
 

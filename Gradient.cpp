@@ -7,7 +7,7 @@ Gradient::Gradient()
     getEmptyVector();
 }
 
-Gradient::Gradient(QVector<QVector<int>>& iX, QVector<QVector<int>>& iY, int h, int w) : gHeight(h), gWidth(w)
+Gradient::Gradient(QVector<QVector<int>>& iX, QVector<QVector<int>>& iY, int h, int w) : gHeight(h), gWidth(w), stackCnt(0)
 {
     this->iX= iX;
     this->iY= iY;
@@ -58,6 +58,9 @@ int Gradient::getOrientationSector(int i, int j)
 
 void Gradient::initGradientMagnitude()
 {
+    /*std::cout << gWidth << ", " <<gHeight << std::endl;
+    std::cout << "ix: " << iX.size() << "x" <<iX[0].size();
+    std::cout << "iy: " << iY.size() << "x" <<iY[0].size();*/
     for (int i = 0; i<gWidth; i++) {
         QVector<int> emagX;
         for(int j= 0; j < gHeight; j++){
@@ -148,7 +151,7 @@ QImage* Gradient::getBinImage(int tlo, int thi)
     {
         for (int j = 1;  j<gHeight-1; j++)
         {
-            tempImage->setPixelColor(i, j, QColor(255-ebin[i][j], 255-ebin[i][j], 255-ebin[i][j]));
+            tempImage->setPixelColor(i, j, QColor(ebin[i][j], ebin[i][j], ebin[i][j]));
         }
     }
                
@@ -159,6 +162,10 @@ QImage* Gradient::getBinImage(int tlo, int thi)
 
 void Gradient::traceAndTreshHold(int i, int j,int tlo)
 {
+    if(++stackCnt > 90000)
+    {
+        return;
+    }
     ebin[i][j] = 255;
     for(int u = std::max(i-1, 0); u <= std::min(i+1, gWidth); u++)
     {
