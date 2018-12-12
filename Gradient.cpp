@@ -151,7 +151,7 @@ QImage* Gradient::getBinImage(int tlo, int thi)
     {
         for (int j = 1;  j<gHeight-1; j++)
         {
-            tempImage->setPixelColor(i, j, QColor(ebin[i][j], ebin[i][j], ebin[i][j]));
+            tempImage->setPixelColor(i, j, QColor(255-ebin[i][j], 255-ebin[i][j], 255-ebin[i][j]));
         }
     }
                
