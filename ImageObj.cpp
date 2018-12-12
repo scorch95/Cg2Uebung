@@ -355,7 +355,7 @@ void ImageObj::resetToCopyImage()
     }
 }
 
-void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
+void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge, int div){
 
     int filterWidth = filter[0].size();
     int filterHeight = filter.size();
@@ -363,8 +363,7 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
     int filterWidthHalf = filterWidth/2;
     int filterHeightHalf= filterHeight/2;
 
-    double div = filterWidth*filterHeight;
-    div = 2.0;
+    //double div = filterWidth*filterHeight;
     std::cout << "width: " << filterWidthHalf << " height: " << filterHeightHalf << std::endl;
     for(int u= filterWidthHalf; u < width-filterWidthHalf; u++){
          for(int v= filterHeightHalf; v < height-filterHeightHalf; v++){
@@ -377,7 +376,7 @@ void ImageObj::applyFilter(const QVector<QVector<int>>& filter, int edge){
                     sum += c * color.getY();
                 }
             }
-             //std::cout << "sum: " <<  (int) std::round(s* sum) << std::endl;
+             //std::cout << "div: "<<div << std::endl;
 
              int  y = (int) std::round((1.0 * sum)/ (1.0*div));
              color.setY(y);
@@ -493,7 +492,7 @@ QImage* ImageObj::applyFilterOnImage(const QVector<QVector<int>>& filter, int di
 
 void ImageObj::cannyEdgeDectector(int sigma, int thi, int tlow)
 {
-    applyGaussCumu(sigma);
+    applyGaussFilter();
     QImage* gradientX = applyFilterOnImage(initGradientVector('x'), 2);
     QImage* gradientY = applyFilterOnImage(initGradientVector('y'), 2);
     
@@ -521,7 +520,7 @@ void ImageObj::cannyEdgeDectector(int sigma, int thi, int tlow)
 
     }
     
-    Gradient* gradient = new Gradient(iX, iY, width, height);
+    Gradient* gradient = new Gradient(iX, iY, height, width);
     
     
     
@@ -560,6 +559,124 @@ QVector<QVector<int>> ImageObj::initGradientVector(char type) const
         filter[2][1] = 1;
     }
     return filter;
+}
+
+void ImageObj::applyUSM(int sigma, double a)
+{
+    //applyGaussCumu(sigma);
+    applyGaussFilter();
+    
+    QImage mask = QImage(*copyImage);
+    
+    for(int i = 0; i < width; i++)
+    {
+        for(int j = 0; j < height; j++)
+        {
+            YUVColor color = YUVColor(copyImage->pixelColor(i, j));
+            int yOrig = color.getY();
+            color = YUVColor(image->pixelColor(i, j));
+            int ySmooth = color.getY();
+            color.setY(yOrig-ySmooth);
+            
+            mask.setPixelColor(i, j, color);
+            
+        }
+    }
+    
+    for(int i = 0; i < width; i++)
+    {
+        for(int j = 0; j < height; j++)
+        {
+            YUVColor color = YUVColor(mask.pixelColor(i, j));
+            int yMask = color.getY();
+            color = YUVColor(copyImage->pixelColor(i, j));
+            int yOrig = color.getY();
+            
+            color.setY(yOrig+a*yMask);
+            
+            image->setPixelColor(i, j, color);
+        }
+    }
+    calcValues();
+}
+
+void ImageObj::applyGaussFilter()
+{
+    const QVector<int> l1 = { 1, 2, 1 };
+    const QVector<int> l2 = { 2, 4, 2 };
+    
+    const QVector<QVector<int>> gaussVec = {l1,l2,l1};
+    
+    applyFilter(gaussVec, 2, 16);
+    calcValues();
+}
+
+void ImageObj::applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow)
+{
+    cannyEdgeDectector(50, 20, 15);
+    int xCntr = width/2;
+    int yCntr = height/2;
+    
+    int nAng = aSteps;
+    double dAng = M_PI/nAng;
+    int nRad = rSteps;
+    
+    double rMax = std::sqrt(xCntr*xCntr + yCntr*yCntr);
+    int dRad = (2*rMax)/nRad;
+    QVector<QVector<int>> akkuVec;
+    for(int i = 0; i<nAng; i++)
+    {
+        QVector<int> tempVec;
+        for(int j = 0; j< nRad; j++)
+        {
+            tempVec.push_back(0);
+        }
+        akkuVec.push_back(tempVec);
+    }
+    
+    for(int v = 0; v < height; v++)
+    {
+        for (int u = 0; u < width; u++)
+        {
+            YUVColor col = YUVColor(image->pixelColor(u,v));
+            if(col.getY() > 0)
+            {
+                double x = u-xCntr;
+                double y = v-yCntr;
+                for(int a = 0; a<nAng; a++)
+                {
+                    double theta= dAng*static_cast<double>(a);
+                    int r = std::round((x*std::cos(theta) + y*std::sin(theta))/static_cast<double>(dRad) + nRad/2);
+                    //std::cout << r <<std::endl;
+                    if(r >= 0 && r<nRad)
+                    {
+                        akkuVec[a][r]++;
+                    }
+                }
+            }
+        }
+    }
+    
+    QImage akkuImg = QImage(nAng, nRad, QImage::Format_RGB32);
+    for(int i = 0; i< nAng; i++)
+    {
+        for(int j = 0; j < nRad; j++)
+        {
+            int color = akkuVec[i][j];
+            if(color > 255)
+                color = 255;
+            YUVColor qColor = YUVColor(QColor(color,color,color));
+            qColor.convertToGrey();
+            akkuImg.setPixelColor(i, j, qColor);
+        }
+    }
+    
+    if(image != nullptr)
+    {
+        delete image;
+    }
+    image = new QImage(akkuImg);
+    
 }
 /*void ImageObj::yuvConvert()
 {

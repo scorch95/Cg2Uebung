@@ -38,6 +38,7 @@ private:
     void initGradientMagnitude();
     void traceAndTreshHold(int i, int j,int tlo);
 
+    int stackCnt;
 };
 
 #endif // GRADIENT_H
