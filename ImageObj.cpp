@@ -9,7 +9,7 @@
 
 #include "YUVColor.h"
 #include "Gradient.h"
-#inlcude "AkkuObj.h"
+#include "AkkuObj.h"
 
 #include <iostream>
 #include <cmath>
@@ -578,8 +578,8 @@ void ImageObj::applyUSM(int sigma, double a)
             color = YUVColor(image->pixelColor(i, j));
             int ySmooth = color.getY();
             color.setY(yOrig-ySmooth);
-            
-            mask.setPixelColor(i, j, color);
+            QColor c = QColor(color.getY(),color.getY(), color.getY());
+            mask.setPixelColor(i, j, c);
             
         }
     }
@@ -594,8 +594,8 @@ void ImageObj::applyUSM(int sigma, double a)
             int yOrig = color.getY();
             
             color.setY(yOrig+a*yMask);
-            
-            image->setPixelColor(i, j, color);
+            QColor c = QColor(color.getY(),color.getY(), color.getY());
+            image->setPixelColor(i, j, c);
         }
     }
     calcValues();
@@ -603,18 +603,18 @@ void ImageObj::applyUSM(int sigma, double a)
 
 void ImageObj::applyGaussFilter()
 {
-    const QVector<int> l1 = { 1, 2, 1 };
+    const QVector<int> l1 = { 1, 2, 1};
     const QVector<int> l2 = { 2, 4, 2 };
     
     const QVector<QVector<int>> gaussVec = {l1,l2,l1};
     
-    applyFilter(gaussVec, 2, 16);
+    applyFilter(gaussVec, 2, 49);
     calcValues();
 }
 
 void ImageObj::applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow)
 {
-    cannyEdgeDectector(50, 20, 15);
+    cannyEdgeDectector(50, tHi, tLow);
     int xCntr = width/2;
     int yCntr = height/2;
     
@@ -642,8 +642,8 @@ void ImageObj::applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow)
             YUVColor col = YUVColor(image->pixelColor(u,v));
             if(col.getY() > 0)
             {
-                double x = u-xCntr;
-                double y = v-yCntr;
+                int x = u-xCntr;
+                int y = v-yCntr;
                 for(int a = 0; a<nAng; a++)
                 {
                     double theta= dAng*static_cast<double>(a);
@@ -651,7 +651,7 @@ void ImageObj::applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow)
                     //std::cout << r <<std::endl;
                     if(r >= 0 && r<nRad)
                     {
-                        akkuVec[a][r].setPoints(static_cast<int>(x), static_cast<int>(y));
+                        akkuVec[a][r].setPoints(u,v);
                     }
                 }
             }
@@ -663,7 +663,7 @@ void ImageObj::applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow)
     {
         for(int j = 0; j < nRad; j++)
         {
-            int color = akkuVec[i][j].count();
+            int color = akkuVec[i][j].getCount();
             if(color > 255)
                 color = 255;
             YUVColor qColor = YUVColor(QColor(color,color,color));

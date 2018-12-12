@@ -10,7 +10,7 @@ public:
     ~AkkuObj();
 
     void setPoints(int& x, int& y);
-    int count();
+    int getCount();
 private:
     int count, startX, startY, endX, endY;
 };

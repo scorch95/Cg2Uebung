@@ -29,7 +29,7 @@ int Gradient::getValue(int i, int j)
 
 int Gradient::getOrientationSector(int i, int j)
 {
-    int s;
+    int s=-1;
     int x = iX[i][j];
     int y = iY[i][j];
     //QVector2D* vec = new QVector2D(COS_PI8*x-SIN_PI8*y, SIN_PI8*x+COS_PI8*y);
@@ -43,15 +43,19 @@ int Gradient::getOrientationSector(int i, int j)
         dy = -dy;
     }
 
-    if(dx > 0 && dx >= dy)
+    if(dx >= 0 && dx >= dy)
         s = 0;
-    if(dx > 0 && dx < dy)
+    if(dx >= 0 && dx < dy)
         s = 1;
     if(dx < 0 && -dx < dy)
         s = 2;
     if(dx < 0 && -dx >= dy)
         s = 3;
 
+    if(s<0)
+    {
+        std::cout << "Keine Gradientenrichtung" <<  "dx: " << dx << " dy: " << dy <<std::endl;
+    }
     return s;
 }
 
@@ -114,7 +118,7 @@ bool Gradient::isLocalMax(int i, int j, int s, int tlo) const
             mLeft = emag[i-1][j+1];
             mRight = emag[i+1][j-1];
         }
-        return (mLeft<=mCurrent)&&(mCurrent>=mRight);
+        return (mLeft<mCurrent)&&(mCurrent>mRight);
     }
 }
 
@@ -151,7 +155,7 @@ QImage* Gradient::getBinImage(int tlo, int thi)
     {
         for (int j = 1;  j<gHeight-1; j++)
         {
-            tempImage->setPixelColor(i, j, QColor(255-ebin[i][j], 255-ebin[i][j], 255-ebin[i][j]));
+            tempImage->setPixelColor(i, j, QColor(ebin[i][j], ebin[i][j], ebin[i][j]));
         }
     }
                
@@ -167,11 +171,11 @@ void Gradient::traceAndTreshHold(int i, int j,int tlo)
         return;
     }
     ebin[i][j] = 255;
-    for(int u = std::max(i-1, 0); u <= std::min(i+1, gWidth); u++)
+    for(int u = std::max(i-1, 0); u <= std::min(i+1, gWidth-1); u++)
     {
-        for(int v = std::max(j-1, 0); v <=std::min(j+1, gHeight);v++)
+        for(int v = std::max(j-1, 0); v <=std::min(j+1, gHeight-1);v++)
         {
-            if(enms[u][v] >= tlo && ebin[u][v] == 0)
+            if(enms[u][v] >= tlo && ebin[u][v] != 255)
             {
                 traceAndTreshHold(u, v, tlo);
             }

@@ -1,6 +1,6 @@
 #include "AkkuObj.h"
 
-AkkuObj::AkkuObj()
+AkkuObj::AkkuObj() : count(0), startX(-1), startY(-1), endX(-1), endY(-1)
 {
 
 }
@@ -23,7 +23,7 @@ void AkkuObj::setPoints(int& x, int& y)
     count++;
 }
 
-int AkkuObj::count()
+int AkkuObj::getCount()
 {
     return count;
 }
