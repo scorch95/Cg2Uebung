@@ -9,6 +9,7 @@
 
 #include "YUVColor.h"
 #include "Gradient.h"
+#inlcude "AkkuObj.h"
 
 #include <iostream>
 #include <cmath>
@@ -623,13 +624,13 @@ void ImageObj::applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow)
     
     double rMax = std::sqrt(xCntr*xCntr + yCntr*yCntr);
     int dRad = (2*rMax)/nRad;
-    QVector<QVector<int>> akkuVec;
+    QVector<QVector<AkkuObj>> akkuVec;
     for(int i = 0; i<nAng; i++)
     {
-        QVector<int> tempVec;
+        QVector<AkkuObj> tempVec;
         for(int j = 0; j< nRad; j++)
         {
-            tempVec.push_back(0);
+            tempVec.push_back(AkkuObj());
         }
         akkuVec.push_back(tempVec);
     }
@@ -650,7 +651,7 @@ void ImageObj::applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow)
                     //std::cout << r <<std::endl;
                     if(r >= 0 && r<nRad)
                     {
-                        akkuVec[a][r]++;
+                        akkuVec[a][r].setPoints(static_cast<int>(x), static_cast<int>(y));
                     }
                 }
             }
@@ -662,7 +663,7 @@ void ImageObj::applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow)
     {
         for(int j = 0; j < nRad; j++)
         {
-            int color = akkuVec[i][j];
+            int color = akkuVec[i][j].count();
             if(color > 255)
                 color = 255;
             YUVColor qColor = YUVColor(QColor(color,color,color));
