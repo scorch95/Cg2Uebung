@@ -6,6 +6,7 @@
 //
 
 #include "YUVColor.h"
+#include <cmath>
 
 YUVColor::YUVColor(QColor color) :QColor(color)
 {
@@ -83,20 +84,25 @@ void YUVColor::convertToGrey()
     this->setRgb(y, y, y);
 }
 
-YUVColor YUVColor::operator+(const YUVColor& b)
+YUVColor YUVColor::operator+(const YUVColor& a)
 {
-    QColor returnValue = QColor(this->red()+b.red(), this->green()+b.green(), this->blue()+b.blue());
-    return YUVColor(returnValue);
+    int r = checkColor(this->red()+a.red());
+    int g = checkColor(this->green()+a.green());
+    int b = checkColor(this->blue()+a.blue());
+    return YUVColor(QColor(r,g,b));
 }
 
-YUVColor YUVColor::operator-(const YUVColor& b)
+YUVColor YUVColor::operator-(const YUVColor& a)
 {
-    QColor returnValue = QColor(this->red()-b.red(), this->green()-b.green(), this->blue()-b.blue());
-    return YUVColor(returnValue);
-}
+    int r = checkColor(this->red()-a.red());
+    int g = checkColor(this->green()-a.green());
+    int b = checkColor(this->blue()-a.blue());
+    return YUVColor(QColor(r,g,b));}
 
-YUVColor YUVColor::operator*(double b)
+YUVColor YUVColor::operator*(double a)
 {
-    QColor returnValue = QColor(this->red()*b, this->green()*b, this->blue()*b);
-    return YUVColor(returnValue);
+    int r = checkColor(std::round(a*this->red()));
+    int g = checkColor(std::round(a*this->green()));
+    int b = checkColor(std::round(a*this->blue()));
+    return YUVColor(QColor(r,g,b));
 }
