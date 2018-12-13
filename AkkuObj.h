@@ -11,6 +11,10 @@ public:
 
     void setPoints(int& x, int& y);
     int getCount();
+    int getStartX();
+    int getStartY();
+    int getEndX();
+    int getEndY();
 private:
     int count, startX, startY, endX, endY;
 };
