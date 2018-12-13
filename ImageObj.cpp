@@ -549,12 +549,12 @@ QVector<QVector<int>> ImageObj::initGradientVector(char type) const
         }
         filter.push_back(filterX);
     }
-    if(type == 'x')
+    if(type == 'y')
     {
         filter[1][0] = -1;
         filter[1][2] = 1;
     }
-    if(type == 'y')
+    if(type == 'x')
     {
         filter[0][1] = -1;
         filter[2][1] = 1;
