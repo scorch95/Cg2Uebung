@@ -598,7 +598,7 @@ void ImageObj::applyGaussFilter()
     
     const QVector<QVector<int>> gaussVec = {l1,l2,l1};
     
-    applyFilter(gaussVec, 2, 49);
+    applyFilter(gaussVec, 2, 16);
     calcValues();
 }
 
@@ -659,15 +659,98 @@ void ImageObj::applyHoughTrans(int aSteps, int rSteps, double tHi, double tLow)
             YUVColor qColor = YUVColor(QColor(color,color,color));
             qColor.convertToGrey();
             akkuImg.setPixelColor(i, j, qColor);
+
+            drawLine(akkuVec[i][j].getStartX(), akkuVec[i][j].getStartY(), akkuVec[i][j].getEndX(), akkuVec[i][j].getEndY());
         }
     }
     
-    if(image != nullptr)
+    /*if(image != nullptr)
     {
         delete image;
     }
-    image = new QImage(akkuImg);
+    image = new QImage(akkuImg);*/
     
+}
+
+void ImageObj::drawLine(int x0, int y0, int x1, int y1)
+{
+    if(x0 == -1 || y0 == -1 || x1 ==-1 || y1 ==-1)
+    {
+        return;
+    }
+    /*if(x1 < x0 || y1<y0)
+    {
+        std::cout<< "x0 "<< x0<< " y0 "<< y0<< " x1 "<< x1<< " y1 "<< y1<< std::endl;
+        return;
+    }*/
+
+    int x,y;
+    int deltaX= std::abs(x1-x0);
+    int deltaY = y1-y0;
+
+    int deltaNE = 2*(deltaY-deltaX);
+    int deltaE = 2*deltaY;
+
+    int d = 2 * deltaY-deltaX;
+    QColor color = QColor(Qt::GlobalColor::red);
+    image->setPixelColor(x,y, color);
+
+    if(x0 < x1) // positive Stiegung
+    {
+        if(deltaY > deltaX)
+        {
+            x = y0;
+            y = x0;
+        }
+        else{
+            x = x0;
+            y = y0;
+        }
+
+        while (x<x1)
+        {
+            if(d >= 0)
+            {
+                d += deltaNE;
+                x++;
+                y++;
+            }
+            else{
+                d += deltaE;
+                x++;
+            }
+            image->setPixelColor(x,y, color);
+        }
+
+    }
+    else // negative Stiegung
+    {
+        if(deltaY > -deltaX)
+        {
+            x = y1;
+            y = x1;
+        }
+        else{
+            x = x1;
+            y = y1;
+        }
+
+        while (x<x0)
+        {
+            if(d >= 0)
+            {
+                d += deltaNE;
+                x++;
+                y++;
+            }
+            else{
+                d += deltaE;
+                x++;
+            }
+            image->setPixelColor(x,y, color);
+        }
+    }
+
 }
 /*void ImageObj::yuvConvert()
 {
