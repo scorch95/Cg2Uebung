@@ -82,3 +82,21 @@ void YUVColor::convertToGrey()
     int y = getY();
     this->setRgb(y, y, y);
 }
+
+YUVColor YUVColor::operator+(const YUVColor& b)
+{
+    QColor returnValue = QColor(this->red()+b.red(), this->green()+b.green(), this->blue()+b.blue());
+    return YUVColor(returnValue);
+}
+
+YUVColor YUVColor::operator-(const YUVColor& b)
+{
+    QColor returnValue = QColor(this->red()-b.red(), this->green()-b.green(), this->blue()-b.blue());
+    return YUVColor(returnValue);
+}
+
+YUVColor YUVColor::operator*(double b)
+{
+    QColor returnValue = QColor(this->red()*b, this->green()*b, this->blue()*b);
+    return YUVColor(returnValue);
+}

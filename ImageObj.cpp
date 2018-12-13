@@ -573,14 +573,9 @@ void ImageObj::applyUSM(int sigma, double a)
     {
         for(int j = 0; j < height; j++)
         {
-            YUVColor color = YUVColor(copyImage->pixelColor(i, j));
-            int yOrig = color.getY();
-            color = YUVColor(image->pixelColor(i, j));
-            int ySmooth = color.getY();
-            color.setY(yOrig-ySmooth);
-            QColor c = QColor(color.getY(),color.getY(), color.getY());
-            mask.setPixelColor(i, j, c);
-            
+            YUVColor origColor = YUVColor(copyImage->pixelColor(i, j));
+            YUVColor smoothColor = YUVColor(image->pixelColor(i, j));
+            mask.setPixelColor(i, j, origColor-smoothColor);
         }
     }
     
@@ -588,14 +583,9 @@ void ImageObj::applyUSM(int sigma, double a)
     {
         for(int j = 0; j < height; j++)
         {
-            YUVColor color = YUVColor(mask.pixelColor(i, j));
-            int yMask = color.getY();
-            color = YUVColor(copyImage->pixelColor(i, j));
-            int yOrig = color.getY();
-            
-            color.setY(yOrig+a*yMask);
-            QColor c = QColor(color.getY(),color.getY(), color.getY());
-            image->setPixelColor(i, j, c);
+            YUVColor maskColor = YUVColor(mask.pixelColor(i, j));
+            YUVColor origColor= YUVColor(copyImage->pixelColor(i, j));
+            image->setPixelColor(i, j, origColor+(maskColor*a));
         }
     }
     calcValues();

@@ -26,6 +26,10 @@ public:
     
     void convertToGrey();
     
+    YUVColor operator+(const YUVColor& b);
+    YUVColor operator-(const YUVColor& b);
+    YUVColor operator*(double b);
+    
 private:
     double calcY(double r, double g, double b) const;
     double calcU(double y, double b) const;
