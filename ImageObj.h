@@ -78,6 +78,7 @@ private:
     int checkColor(int value);
     void setPointersToNull();
     QImage* applyFilterOnImage(const QVector<QVector<int>>& filter, int div);
+    QVector<QVector<int>> applyFilterOnVector(const QVector<QVector<int>>& filter, int div);
     QVector<QVector<int>> initGradientVector(char type) const;
     void applyGaussFilter();
     void drawLine(int x0, int y0, int x1, int y1);

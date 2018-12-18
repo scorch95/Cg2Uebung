@@ -950,7 +950,7 @@ void ImageViewer::applyMatrixFilter()
             }
             if(value->text() != "0")
             {
-                div+=value->text().toInt();
+                div+=std::abs(value->text().toInt());
             }
             filterX.insert(j, value->text().toInt());
         }

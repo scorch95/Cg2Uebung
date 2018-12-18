@@ -34,8 +34,8 @@ int Gradient::getOrientationSector(int i, int j)
     int y = iY[i][j];
     //QVector2D* vec = new QVector2D(COS_PI8*x-SIN_PI8*y, SIN_PI8*x+COS_PI8*y);
 
-    int dx = COS_PI8*x-SIN_PI8*y;
-    int dy = SIN_PI8*x+COS_PI8*y;
+    double dx = COS_PI8*x-SIN_PI8*y;
+    double dy = SIN_PI8*x+COS_PI8*y;
 
     if(dy < 0)
     {
@@ -118,7 +118,7 @@ bool Gradient::isLocalMax(int i, int j, int s, int tlo) const
             mLeft = emag[i-1][j+1];
             mRight = emag[i+1][j-1];
         }
-        return (mLeft<mCurrent)&&(mCurrent>mRight);
+        return (mLeft<=mCurrent)&&(mCurrent>=mRight);
     }
 }
 
@@ -148,7 +148,7 @@ QImage* Gradient::getBinImage(int tlo, int thi)
             }
         }
     }
-    //printQVector(ebin);
+    //printQVector(iX);
     
     QImage* tempImage = new QImage(gWidth,gHeight, QImage::Format_RGB32);
     for(int i = 1; i<gWidth-1; i++)
@@ -175,7 +175,7 @@ void Gradient::traceAndTreshHold(int i, int j,int tlo)
     {
         for(int v = std::max(j-1, 0); v <=std::min(j+1, gHeight-1);v++)
         {
-            if(enms[u][v] >= tlo && ebin[u][v] != 255)
+            if(enms[u][v] >= tlo && ebin[u][v] == 0)
             {
                 traceAndTreshHold(u, v, tlo);
             }
